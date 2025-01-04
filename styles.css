@@ -1,9 +1,0 @@
-html, body {
-    margin: 0; /* Remove default margin */
-    height: 100%; /* Full height */
-    overflow: hidden; /* Prevent scrollbars */
-}
-
-canvas {
-    display: block; /* Remove inline-block spacing */
-} 
