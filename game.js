@@ -30,7 +30,7 @@ const game = new Phaser.Game(config);
 function preload() {
     // Load your assets here
     this.load.spritesheet('playerIdle', 'assets/player/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 31 });
-    this.load.image('forest', 'assets/enviorment/forest backdrop.png'); // Load the forest backdrop
+    this.load.image('forest', 'assets/environment/forest backdrop.png'); // Load the forest backdrop
     this.load.spritesheet('playerRun', 'assets/player/run/Run-Sheet.png', { frameWidth: 64, frameHeight: 64 }); // Load run-sheet sprite sheet
     this.load.spritesheet('handsIdle', 'assets/player/idle/Knight Idle holding nothing.png', { frameWidth: 32, frameHeight: 32 }); // Load hands sprite sheet
     this.load.spritesheet('handsRun', 'assets/player/run/Knight Run holding nothing.png', { frameWidth: 64, frameHeight: 64 }); // Load running hands sprite sheet
