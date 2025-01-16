@@ -60,29 +60,6 @@ export default class PlayerManager {
         this.player.setVelocityX(0);
         this.player.setVelocityY(0);
 
-        // Never delete this code, it makes sure diagonal movement is equal
-        if (this.cursors.left.isDown && this.cursors.up.isDown) {
-            this.player.setVelocityX(-speed / Math.sqrt(2)); // Normalize for diagonal movement
-            this.player.setVelocityY(-speed / Math.sqrt(2));
-            this.hands.x = this.player.x-2; // Position hands relative to player
-            this.hands.y = this.player.y-2; // Position hands relative to player
-        } else if (this.cursors.left.isDown && this.cursors.down.isDown) {
-            this.player.setVelocityX(-speed / Math.sqrt(2)); // Normalize for diagonal movement
-            this.player.setVelocityY(speed / Math.sqrt(2));
-            this.hands.x = this.player.x-2; // Position hands relative to player
-            this.hands.y = this.player.y+2; // Position hands relative to player
-        } else if (this.cursors.right.isDown && this.cursors.up.isDown) {
-            this.player.setVelocityX(speed / Math.sqrt(2)); // Normalize for diagonal movement
-            this.player.setVelocityY(-speed / Math.sqrt(2));
-            this.hands.x = this.player.x+2; // Position hands relative to player
-            this.hands.y = this.player.y-2; // Position hands relative to player
-        } else if (this.cursors.right.isDown && this.cursors.down.isDown) {
-            this.player.setVelocityX(speed / Math.sqrt(2)); // Normalize for diagonal movement
-            this.player.setVelocityY(speed / Math.sqrt(2));
-            this.hands.x = this.player.x+2; // Position hands relative to player
-            this.hands.y = this.player.y+2; // Position hands relative to player
-        }
-
         if (this.scene.cursors.left.isDown) {
             this.player.setVelocityX(-speed);
             this.player.flipX = true;
