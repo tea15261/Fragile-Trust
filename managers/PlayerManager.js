@@ -10,7 +10,8 @@ export default class PlayerManager {
 
     init() {
         // Create player and hands sprites
-        this.player = this.scene.physics.add.sprite(300, 200, 'playerIdle');
+        this.player = this.scene.physics.add.sprite(450, 100, 'playerIdle');
+        this.player.flipX = true;
         this.player.setCollideWorldBounds(true);
         this.player.setOrigin(0.5, 1);
         this.player.setSize(32, 32);
