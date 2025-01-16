@@ -7,7 +7,7 @@ export class ForestScene extends Phaser.Scene {
 
     preload() {
         this.load.spritesheet('playerIdle', 'assets/player/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
-        this.load.image('forest', 'assets/environment/forest backdrop.png'); 
+        this.load.image('forest', 'assets/environment/forest-backdrop.png'); 
         this.load.spritesheet('playerRun', 'assets/player/run/Run-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('handsIdle', 'assets/player/idle/Knight Idle holding nothing.png', { frameWidth: 32, frameHeight: 32 }); 
         this.load.spritesheet('handsRun', 'assets/player/run/Knight Run holding nothing.png', { frameWidth: 64, frameHeight: 64 }); 
