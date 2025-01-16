@@ -71,6 +71,6 @@ export class ForestScene extends Phaser.Scene {
         this.specialWalls.create(540, 170, null).setSize(150, 120).setOrigin(0, 0).setVisible(false);
         this.specialWalls.create(600, 170, null).setSize(120, 230).setOrigin(0, 0).setVisible(false);
         
-        this.physics.add.overlap(this.playerManager.player, this.specialWalls, null, this);
+        this.physics.add.overlap(this.playerManager.player, this.specialWalls);
     }
 }
