@@ -33,17 +33,11 @@ export class ForestScene extends Phaser.Scene {
 
         // Check if the player is overlapping with the special walls
         if (this.physics.overlap(this.playerManager.player, this.specialWalls)) {
-            this.playerManager.player.setVisible(false);
-            this.playerManager.hands.setVisible(false);
+            this.playerManager.hide();
         } else {
-            this.playerManager.player.setVisible(true);
-            this.playerManager.hands.setVisible(true);
+            this.playerManager.show();
         }
-    } 
-
-    handleSpecialWallEnter() {
-        this.playerManager.hands.setVisible(false);
-    } 
+    }
 
     changeScene() {
         this.scene.start('tavern'); 
@@ -77,8 +71,6 @@ export class ForestScene extends Phaser.Scene {
         this.specialWalls.create(540, 170, null).setSize(150, 120).setOrigin(0, 0).setVisible(false);
         this.specialWalls.create(600, 170, null).setSize(120, 230).setOrigin(0, 0).setVisible(false);
         
-        this.physics.add.overlap(this.playerManager.player, this.specialWalls, (player, wall) => {
-            this.handleSpecialWallEnter();
-        }, null, this);
+        this.physics.add.overlap(this.playerManager.player, this.specialWalls, null, this);
     }
 }
