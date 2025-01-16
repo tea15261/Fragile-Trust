@@ -32,7 +32,7 @@ function preload() {
     this.load.spritesheet('playerIdle', 'assets/player/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
     this.load.image('forest', 'assets/environment/forest backdrop.png'); // Load the forest backdrop
     this.load.image('tavern', 'assets/environment/tavern.jpg'); // Load the tavern
-    this.load.spritesheet('playerRun', 'assets/player/run/test.png', { frameWidth: 32, frameHeight: 32 }); // Load run-sheet sprite sheet
+    this.load.spritesheet('playerRun', 'assets/player/run/Run-Sheet.png', { frameWidth: 32, frameHeight: 32 }); // Load run-sheet sprite sheet
     this.load.spritesheet('handsIdle', 'assets/player/idle/Knight Idle holding nothing.png', { frameWidth: 32, frameHeight: 32 }); // Load hands sprite sheet
     this.load.spritesheet('handsRun', 'assets/player/run/Knight Run holding nothing.png', { frameWidth: 64, frameHeight: 64 }); // Load running hands sprite sheet
 }
