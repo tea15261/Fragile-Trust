@@ -30,7 +30,7 @@ export class TavernScene extends Phaser.Scene {
 
         // Create the scene change box
         this.sceneChangeBox = this.physics.add.staticGroup();
-        this.sceneChangeBox.create(300, 200, null).setSize(30, 30).setOrigin(0, 0).setVisible(false); // Collision box
+        this.sceneChangeBox.create(320, 365, null).setSize(30, 5).setOrigin(0, 0).setVisible(false); // Collision box
         this.physics.add.overlap(this.playerManager.player, this.sceneChangeBox, this.changeScene, null, this);
 
     }
