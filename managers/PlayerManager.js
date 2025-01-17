@@ -80,7 +80,7 @@ export default class PlayerManager {
             this.hands.y = this.player.y + 4;
         }
 
-        // Update animations based on movement
+        // update animations based on movement
         if (this.player.body.velocity.x !== 0 || this.player.body.velocity.y !== 0) {
             this.player.anims.play('run', true);
             this.hands.visible = true;
@@ -93,7 +93,7 @@ export default class PlayerManager {
             this.hands.y = this.player.y;
         }
 
-        // Handle state switching and visibility
+        // state switching and visibility
         if (this.scene.input.keyboard.checkDown(this.scene.cursors.space, 250)) {
             this.playerState = this.playerState === 'holdingNothing' ? 'holdingSomething' : 'holdingNothing';
         }

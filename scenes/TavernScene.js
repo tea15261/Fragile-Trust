@@ -18,25 +18,26 @@ export class TavernScene extends Phaser.Scene {
         const tavernBackdrop = this.add.image(320, 200, 'tavern'); 
         tavernBackdrop.setScale(0.22); 
         
-        this.stranger = this.physics.add.sprite(100, 300,'stranger');
-        this.stranger.setScale(0.5)
-        this.stranger = this.physics.add.sprite(50, 200,'stranger');
-        this.stranger.setScale(0.5)
-        this.stranger = this.physics.add.sprite(20, 350,'stranger');
-        this.stranger.setScale(0.5)
-        this.stranger = this.physics.add.sprite(75, 100,'stranger');
-        this.stranger.setScale(0.5)
-        this.stranger = this.physics.add.sprite(590, 50,'stranger');
-        this.stranger.setScale(0.5)
-        this.stranger = this.physics.add.sprite(580, 150,'stranger');
-        this.stranger.setScale(0.5)
-        this.stranger = this.physics.add.sprite(550, 250,'stranger');
-        this.stranger.setScale(0.5)
-        this.stranger = this.physics.add.sprite(570, 350,'stranger');
-        this.stranger.setScale(0.5)
+        const strangerPositions = [
+            { x: 100, y: 300 },
+            { x: 50, y: 200 },
+            { x: 20, y: 350 },
+            { x: 75, y: 100 },
+            { x: 590, y: 50 },
+            { x: 580, y: 150 },
+            { x: 550, y: 250 },
+            { x: 570, y: 350 }
+        ];
+        
+        this.strangers = strangerPositions.map(pos => {
+            const stranger = this.physics.add.sprite(pos.x, pos.y, 'stranger');
+            stranger.setScale(0.5);
+            return stranger;
+        });
+        
         
 
-        this.playerManager = new PlayerManager(this); // Initialize PlayerManager
+        this.playerManager = new PlayerManager(this); // initialize playerManager
         this.cursors = this.input.keyboard.createCursorKeys();
         const playerX = 320; 
         const playerY = this.cameras.main.height - 50; 
@@ -54,7 +55,7 @@ export class TavernScene extends Phaser.Scene {
     update() {
         this.playerManager.update(); 
 
-         // Check if the player is overlapping with the special walls
+         // check if the player is overlapping with the special walls
          if (this.physics.overlap(this.playerManager.player, this.specialWalls)) {
             this.playerManager.hide();
         } else {
@@ -67,41 +68,53 @@ export class TavernScene extends Phaser.Scene {
     }
 
     createObstacles() {
+        const obstacleConfigs = [
+            { x: 320, y: 80, width: 400, height: 10 },  // Bar wall
+            { x: 150, y: 180, width: 10, height: 400 }, // Left wall
+            { x: 500, y: 180, width: 10, height: 400 }, // Right wall
+            { x: 320, y: 370, width: 400, height: 10 }, // Bottom wall
+    
+            { x: 50, y: 180, width: 400, height: 10 },  // Top left fence
+            { x: 590, y: 180, width: 400, height: 10 }, // Top right fence
+    
+            { x: 200, y: 140, width: 40, height: 40 },  // Top left table
+            { x: 440, y: 140, width: 40, height: 40 },  // Top right table
+    
+            { x: 50, y: 260, width: 400, height: 10 },  // Bottom left fence
+            { x: 590, y: 260, width: 400, height: 10 }, // Bottom right fence
+    
+            { x: 200, y: 230, width: 40, height: 40 },  // Middle left table
+            { x: 440, y: 230, width: 40, height: 40 },  // Middle right table
+    
+            { x: 200, y: 320, width: 40, height: 40 },  // Bottom left table
+            { x: 440, y: 320, width: 40, height: 40 }   // Bottom right table
+        ];
+    
         this.obstacles = this.physics.add.staticGroup();
-
-        this.obstacles.create(320, 80, null).setSize(400, 10).setOrigin(0, 0).setVisible(false); // bar wall
-        this.obstacles.create(150, 180, null).setSize(10, 400).setOrigin(0, 0).setVisible(false); // left wall
-        this.obstacles.create(500, 180, null).setSize(10, 400).setOrigin(0, 0).setVisible(false); // left wall
-        this.obstacles.create(320, 370, null).setSize(400, 10).setOrigin(0, 0).setVisible(false); // bottom wall
-
-        this.obstacles.create(50, 180, null).setSize(400, 10).setOrigin(0, 0).setVisible(false); // top left fence
-        this.obstacles.create(590, 180, null).setSize(400, 10).setOrigin(0, 0).setVisible(false); // top right fence
-
-        this.obstacles.create(200, 140, null).setSize(40, 40).setOrigin(0, 0).setVisible(false); // top left table
-        this.obstacles.create(440, 140, null).setSize(40, 40).setOrigin(0, 0).setVisible(false); // top right table
-
-        this.obstacles.create(50, 260, null).setSize(400, 10).setOrigin(0, 0).setVisible(false); // bottom left fence
-        this.obstacles.create(590, 260, null).setSize(400, 10).setOrigin(0, 0).setVisible(false); // bottom right fence
-
-        this.obstacles.create(200, 230, null).setSize(40, 40).setOrigin(0, 0).setVisible(false); // middle left table
-        this.obstacles.create(440, 230, null).setSize(40, 40).setOrigin(0, 0).setVisible(false); // middle right table
-
-        this.obstacles.create(200, 320, null).setSize(40, 40).setOrigin(0, 0).setVisible(false); // bottom left table
-        this.obstacles.create(440, 320, null).setSize(40, 40).setOrigin(0, 0).setVisible(false); // bottom right table
-
+    
+        obstacleConfigs.forEach(config => {
+            const obstacle = this.obstacles.create(config.x, config.y, null);
+            obstacle.setSize(config.width, config.height).setOrigin(0, 0).setVisible(false);
+        });
+    
         this.physics.add.collider(this.playerManager.player, this.obstacles);
-    }
+    }    
 
     createSpecialWalls() {
-        this.specialWalls = this.physics.add.staticGroup();
-
-        this.specialWalls.create(240, 100, null).setSize(20, 35).setOrigin(0, 0).setVisible(false); // top left column
-        this.specialWalls.create(400, 100, null).setSize(20, 35).setOrigin(0, 0).setVisible(false); // top right column
-
-        this.specialWalls.create(240, 250, null).setSize(20, 20).setOrigin(0, 0).setVisible(false); // bottom left column
-        this.specialWalls.create(400, 250, null).setSize(20, 20).setOrigin(0, 0).setVisible(false); // bottom right column
-        
-        this.physics.add.overlap(this.playerManager.player, this.specialWalls);
-    }
+        const specialWallConfigs = [
+            { x: 240, y: 100, width: 20, height: 35 }, // Top left column
+            { x: 400, y: 100, width: 20, height: 35 }, // Top right column
+            { x: 240, y: 250, width: 20, height: 20 }, // Bottom left column
+            { x: 400, y: 250, width: 20, height: 20 }  // Bottom right column
+        ];
     
+        this.specialWalls = this.physics.add.staticGroup();
+    
+        specialWallConfigs.forEach(config => {
+            const wall = this.specialWalls.create(config.x, config.y, null);
+            wall.setSize(config.width, config.height).setOrigin(0, 0).setVisible(false);
+        });
+    
+        this.physics.add.overlap(this.playerManager.player, this.specialWalls);
+    }    
 }
