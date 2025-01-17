@@ -3,13 +3,17 @@ export default class PlayerManager {
         this.scene = scene;
         this.player = null;
         this.hands = null;
+        this.shadow = null; 
         this.playerState = 'holdingNothing';
 
         this.init();
     }
 
     init() {
-        // Create player and hands sprites
+        this.shadow = this.scene.add.ellipse(400, 100, 30, 10, 0x000000, 0.5);
+        this.shadow.setOrigin(0.5, 1.5);
+
+        // create player and hands sprites
         this.player = this.scene.physics.add.sprite(450, 100, 'playerIdle');
         this.player.flipX = true;
         this.player.setCollideWorldBounds(true);
@@ -92,6 +96,9 @@ export default class PlayerManager {
             this.hands.y = this.player.y + 2; 
         }
 
+        this.shadow.x = this.player.x;
+        this.shadow.y = this.player.y + 8;
+
         // update animations based on movement
         if (this.player.body.velocity.x !== 0 || this.player.body.velocity.y !== 0) {
             this.player.anims.play('run', true);
@@ -114,10 +121,12 @@ export default class PlayerManager {
     hide() {
         this.player.setVisible(false);
         this.hands.setVisible(false);
+        this.shadow.setVisible(false); 
     }
 
     show() {
         this.player.setVisible(true);
         this.hands.setVisible(true);
+        this.shadow.setVisible(true); 
     }
 }
