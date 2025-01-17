@@ -11,7 +11,7 @@ export class ForestScene extends Phaser.Scene {
         this.load.spritesheet('playerRun', 'assets/player/run/Run-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('handsIdle', 'assets/player/idle/Knight Idle holding nothing.png', { frameWidth: 32, frameHeight: 32 }); 
         this.load.spritesheet('handsRun', 'assets/player/run/Knight Run holding nothing.png', { frameWidth: 64, frameHeight: 64 }); 
-        this.load.spritesheet('forest-cutter', 'assets/npc/ezgif.com-gif-to-sprite-converter.png', { frameWidth: 90, frameHeight: 75 }); 
+        this.load.spritesheet('forest-cutter', 'assets/npc/forest-cutter.png', { frameWidth: 90, frameHeight: 75 }); 
 
     }
 
