@@ -46,7 +46,7 @@ export class ForestScene extends Phaser.Scene {
         } else {
             this.playerManager.show();
         }
-
+        // Press space to make the background dark
         if (Phaser.Input.Keyboard.JustDown(this.spacebar)) {
             this.toggleForest();
         }
