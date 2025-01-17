@@ -11,11 +11,30 @@ export class TavernScene extends Phaser.Scene {
         this.load.spritesheet('playerRun', 'assets/player/run/Run-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('handsIdle', 'assets/player/idle/Knight Idle holding nothing.png', { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('handsRun', 'assets/player/run/Knight Run holding nothing.png', { frameWidth: 64, frameHeight: 64 });
+        this.load.spritesheet('stranger', 'assets/npc/Stranger.png', { frameWidth: 64, frameHeight: 64 });
     }
 
     create() {
         const tavernBackdrop = this.add.image(320, 200, 'tavern'); 
         tavernBackdrop.setScale(0.22); 
+        
+        this.stranger = this.physics.add.sprite(100, 300,'stranger');
+        this.stranger.setScale(0.5)
+        this.stranger = this.physics.add.sprite(50, 200,'stranger');
+        this.stranger.setScale(0.5)
+        this.stranger = this.physics.add.sprite(20, 350,'stranger');
+        this.stranger.setScale(0.5)
+        this.stranger = this.physics.add.sprite(75, 100,'stranger');
+        this.stranger.setScale(0.5)
+        this.stranger = this.physics.add.sprite(590, 50,'stranger');
+        this.stranger.setScale(0.5)
+        this.stranger = this.physics.add.sprite(580, 150,'stranger');
+        this.stranger.setScale(0.5)
+        this.stranger = this.physics.add.sprite(550, 250,'stranger');
+        this.stranger.setScale(0.5)
+        this.stranger = this.physics.add.sprite(570, 350,'stranger');
+        this.stranger.setScale(0.5)
+        
 
         this.playerManager = new PlayerManager(this); // Initialize PlayerManager
         this.cursors = this.input.keyboard.createCursorKeys();
