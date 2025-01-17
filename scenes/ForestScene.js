@@ -11,6 +11,8 @@ export class ForestScene extends Phaser.Scene {
         this.load.spritesheet('playerRun', 'assets/player/run/Run-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('handsIdle', 'assets/player/idle/Knight Idle holding nothing.png', { frameWidth: 32, frameHeight: 32 }); 
         this.load.spritesheet('handsRun', 'assets/player/run/Knight Run holding nothing.png', { frameWidth: 64, frameHeight: 64 }); 
+        this.load.spritesheet('forest-cutter', 'assets/npc/ezgif.com-gif-to-sprite-converter.png', { frameWidth: 90, frameHeight: 75 }); 
+
     }
 
     create() {
@@ -26,6 +28,11 @@ export class ForestScene extends Phaser.Scene {
         this.sceneChangeBox = this.physics.add.staticGroup();
         this.sceneChangeBox.create(500, 10, null).setSize(300, 10).setOrigin(0, 0).setVisible(false); 
         this.physics.add.overlap(this.playerManager.player, this.sceneChangeBox, this.changeScene, null, this);
+    
+        const forestCutter = this.add.sprite(540, 325, 'forest-cutter');
+        forestCutter.setScale(0.5);
+        this.createForestCutterAnimation();
+        forestCutter.play('forest-cutter-chop')
     }
 
     update() {
@@ -73,4 +80,23 @@ export class ForestScene extends Phaser.Scene {
         
         this.physics.add.overlap(this.playerManager.player, this.specialWalls);
     }
+
+    createForestCutterAnimation() {
+        this.anims.create({
+            key: 'forest-cutter-chop',
+            frames: [
+                { key: 'forest-cutter', frame: 0, duration: 100 }, 
+                { key: 'forest-cutter', frame: 1, duration: 80 }, 
+                { key: 'forest-cutter', frame: 2, duration: 70 }, 
+                { key: 'forest-cutter', frame: 3, duration: 1000 }, // Frame 3 displayed for 100ms
+                { key: 'forest-cutter', frame: 4, duration: 100 }, // Frame 4 displayed for 200ms
+                { key: 'forest-cutter', frame: 5, duration: 30 }, // Frame 5 displayed for 150ms
+                { key: 'forest-cutter', frame: 6, duration: 30 }, // Frame 6 displayed for 130ms
+                { key: 'forest-cutter', frame: 7, duration: 830 }, // Frame 7 displayed for 170ms
+                { key: 'forest-cutter', frame: 8, duration: 120 }  // Frame 8 displayed for 110ms
+            ],
+            repeat: -1 // Loop indefinitely
+        });
+    }
+    
 }
