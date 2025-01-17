@@ -54,13 +54,13 @@ export class ForestScene extends Phaser.Scene {
         this.obstacles = this.physics.add.staticGroup();
         this.obstacles.create(0, 200, null).setSize(400, 150).setOrigin(0, 0).setVisible(false); // Left wall
         this.obstacles.create(0, 300, null).setSize(200, 75).setOrigin(0, 0).setVisible(false); // Left wall
-        this.obstacles.create(10, 290, null).setSize(200, 75).setOrigin(0, 0).setVisible(false); // Left wall
-        this.obstacles.create(20, 280, null).setSize(200, 75).setOrigin(0, 0).setVisible(false); // Left wall
-        this.obstacles.create(30, 270, null).setSize(200, 75).setOrigin(0, 0).setVisible(false); // Left wall
-        this.obstacles.create(40, 260, null).setSize(200, 75).setOrigin(0, 0).setVisible(false); // Left wall
-        this.obstacles.create(50, 250, null).setSize(200, 75).setOrigin(0, 0).setVisible(false); // Left wall
-        this.obstacles.create(60, 240, null).setSize(200, 75).setOrigin(0, 0).setVisible(false); // Left wall
-
+        
+        let y = 290;
+        for (let x = 10; x <= 60; x+=10) {
+            this.obstacles.create(x, y, null).setSize(200, 75).setOrigin(0, 0).setVisible(false); // Left wall
+            y -= 10;
+          }
+        
         this.obstacles.create(0, 0, null).setSize(560, 300).setOrigin(0, 0).setVisible(false); // Left wall
         this.obstacles.create(300, 0, null).setSize(260, 60).setOrigin(0, 0).setVisible(false); // Top wall
         this.obstacles.create(600, 270, null).setSize(425, 100).setOrigin(0, 0).setVisible(false); // Right wall
