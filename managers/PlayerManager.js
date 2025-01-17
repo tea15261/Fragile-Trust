@@ -59,25 +59,37 @@ export default class PlayerManager {
         const speed = 160;
         this.player.setVelocityX(0);
         this.player.setVelocityY(0);
-
+        
+        const velocity = { x: 0, y: 0 };
+        
         if (this.scene.cursors.left.isDown) {
-            this.player.setVelocityX(-speed);
+            velocity.x = -speed;
             this.player.flipX = true;
             this.hands.x = this.player.x - 4;
-            this.hands.y = this.player.y + 2;
         } else if (this.scene.cursors.right.isDown) {
-            this.player.setVelocityX(speed);
+            velocity.x = speed;
             this.player.flipX = false;
             this.hands.x = this.player.x + 4;
-            this.hands.y = this.player.y + 2;
         }
-
+        
         if (this.scene.cursors.up.isDown) {
-            this.player.setVelocityY(-speed);
+            velocity.y = -speed;
             this.hands.y = this.player.y - 2;
         } else if (this.scene.cursors.down.isDown) {
-            this.player.setVelocityY(speed);
+            velocity.y = speed;
             this.hands.y = this.player.y + 4;
+        }
+        
+        if (velocity.x !== 0 && velocity.y !== 0) {
+            const normalizationFactor = Math.sqrt(2) / 2;
+            velocity.x *= normalizationFactor;
+            velocity.y *= normalizationFactor;
+        }
+        
+        this.player.setVelocity(velocity.x, velocity.y);
+        
+        if (!this.scene.cursors.up.isDown && !this.scene.cursors.down.isDown) {
+            this.hands.y = this.player.y + 2; 
         }
 
         // update animations based on movement
