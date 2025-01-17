@@ -8,6 +8,7 @@ export class ForestScene extends Phaser.Scene {
     preload() {
         this.load.spritesheet('playerIdle', 'assets/player/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         this.load.image('forest', 'assets/environment/forest-backdrop.png'); 
+        this.load.image('evil-forest', 'assets/environment/forest-backdrop-evil.png'); 
         this.load.spritesheet('playerRun', 'assets/player/run/Run-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('handsIdle', 'assets/player/idle/Knight Idle holding nothing.png', { frameWidth: 32, frameHeight: 32 }); 
         this.load.spritesheet('handsRun', 'assets/player/run/Knight Run holding nothing.png', { frameWidth: 64, frameHeight: 64 }); 
@@ -16,11 +17,12 @@ export class ForestScene extends Phaser.Scene {
     }
 
     create() {
-        const forestBackdrop = this.add.image(320, 200, 'forest'); 
-        forestBackdrop.setScale(0.4);
-        
+        this.forestBackdrop = this.forestBackdrop = this.add.image(320, 200, 'forest').setScale(0.4);
+        this.evilForestBackdrop = this.add.image(320, 200, 'evil-forest').setScale(0.4).setVisible(false);
+
         this.playerManager = new PlayerManager(this); // initialize playermanager
         this.cursors = this.input.keyboard.createCursorKeys();
+        this.spacebar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         this.createObstacles();
         this.createSpecialWalls();
@@ -44,6 +46,17 @@ export class ForestScene extends Phaser.Scene {
         } else {
             this.playerManager.show();
         }
+
+        if (Phaser.Input.Keyboard.JustDown(this.spacebar)) {
+            this.toggleForest();
+        }
+    }
+
+    toggleForest() {
+        const isForestVisible = this.forestBackdrop.visible;
+
+        this.forestBackdrop.setVisible(!isForestVisible);
+        this.evilForestBackdrop.setVisible(isForestVisible);
     }
 
     changeScene() {
