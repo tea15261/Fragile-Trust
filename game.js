@@ -1,12 +1,12 @@
 // Basic Phaser game setup
-import {TavernScene} from '/scenes/TavernScene.js';
-import {ForestScene} from '/scenes/ForestScene.js';
+import TavernScene from '/scenes/TavernScene.js';
+import ForestScene from '/scenes/ForestScene.js';
 
 const config = {
     type: Phaser.AUTO,
     width: 640,
     height: 400,
-    physics: {
+    physics: {  
         default: 'arcade',
         arcade: {
             debug: false // Collision debugging

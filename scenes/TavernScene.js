@@ -1,6 +1,6 @@
 import PlayerManager from '/managers/PlayerManager.js';
 
-export class TavernScene extends Phaser.Scene {
+export default class TavernScene extends Phaser.Scene {
     constructor() {
         super({ key: 'tavern' });
     }

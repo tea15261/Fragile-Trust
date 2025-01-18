@@ -1,6 +1,6 @@
 import PlayerManager from '/managers/PlayerManager.js';
 
-export class ForestScene extends Phaser.Scene {
+export default class ForestScene extends Phaser.Scene {
     constructor() {
         super({ key: 'forest' });
     }
