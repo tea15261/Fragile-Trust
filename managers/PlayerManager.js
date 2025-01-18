@@ -10,7 +10,8 @@ export default class PlayerManager {
         this.blurFilter = null;
         this.keyToggleReady = true;
         this.keyE = null; // Add this line
-        
+        this.customCursor = null; // Add this line for custom cursor
+    
         this.init();
     }
 
@@ -27,6 +28,9 @@ export default class PlayerManager {
         this.player.setSize(32, 32);
         this.player.setOffset(0, 0);
 
+        this.customCursor = this.scene.add.sprite(0, 0, 'customCursor').setOrigin(0.5, 0.5).setScale(0.6);
+        this.customCursor.setDepth(10); // Make sure it appears above other elements    
+
         this.hands = this.scene.add.sprite(this.player.x, this.player.y, 'handsIdle');
         this.hands.setOrigin(0.5, 1);
         this.hands.visible = false;
@@ -34,11 +38,9 @@ export default class PlayerManager {
         this.createAnimations();
         this.player.anims.play('idle');
 
+
         // Initialize inventory UI
         this.initInventory();
-
-        // Create blur shader (pseudo-blur by overlay)
-       
     }    
 
     createAnimations() {
@@ -158,6 +160,9 @@ export default class PlayerManager {
 
     update() {
         const speed = 160;
+
+        this.customCursor.x = this.scene.input.x;
+        this.customCursor.y = this.scene.input.y;
 
         this.player.setVelocityX(0);
         this.player.setVelocityY(0);

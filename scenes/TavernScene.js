@@ -7,6 +7,7 @@ export default class TavernScene extends Phaser.Scene {
 
     preload() {
         this.load.image('tavern', 'assets/environment/tavern.jpg'); 
+        this.load.image('customCursor', 'assets/cursor/hand_point.png'); 
         this.load.spritesheet('playerIdle', 'assets/player/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('playerRun', 'assets/player/run/Run-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('handsIdle', 'assets/player/idle/Knight Idle holding nothing.png', { frameWidth: 32, frameHeight: 32 });
@@ -42,6 +43,7 @@ export default class TavernScene extends Phaser.Scene {
         const playerX = 320; 
         const playerY = this.cameras.main.height - 50; 
         this.playerManager.player.setPosition(playerX, playerY);
+        this.input.setDefaultCursor('none');
 
         this.createObstacles();
         this.createSpecialWalls();
