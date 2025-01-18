@@ -100,6 +100,7 @@ export default class PlayerManager {
             0.9
         );
         inventoryBg.setOrigin(0.5, 0.5);
+        inventoryBg.setStrokeStyle(2, 0x787276); // Set border color to #373737
     
         // Add the grid cells for inventory with the specified color
         for (let row = 0; row < inventoryRows; row++) {
@@ -142,9 +143,6 @@ export default class PlayerManager {
     toggleInventory() {
         this.inventoryVisible = !this.inventoryVisible;
         this.inventoryContainer.setVisible(this.inventoryVisible);
-    
-        // Show or hide the blur filter based on inventory visibility
-        //this.blurFilter.setVisible(this.inventoryVisible);
     
         if (this.inventoryVisible) {
             // Pause game updates
