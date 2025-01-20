@@ -1,4 +1,5 @@
 import PlayerManager from '/managers/PlayerManager.js';
+import PreloadManager from '/managers/PreloadManager.js';
 
 export default class ForestScene extends Phaser.Scene {
     constructor() {
@@ -6,15 +7,7 @@ export default class ForestScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.spritesheet('playerIdle', 'assets/player/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
-        this.load.image('forest', 'assets/environment/forest-backdrop.png'); 
-        this.load.image('evil-forest', 'assets/environment/forest-backdrop-evil.png'); 
-        this.load.image('customCursor', 'assets/cursor/hand_point.png'); 
-        this.load.spritesheet('playerRun', 'assets/player/run/Run-Sheet.png', { frameWidth: 32, frameHeight: 32 });
-        this.load.spritesheet('handsIdle', 'assets/player/idle/Knight Idle holding nothing.png', { frameWidth: 32, frameHeight: 32 }); 
-        this.load.spritesheet('handsRun', 'assets/player/run/Knight Run holding nothing.png', { frameWidth: 64, frameHeight: 64 }); 
-        this.load.spritesheet('forest-cutter', 'assets/npc/forest-cutter.png', { frameWidth: 90, frameHeight: 75 }); 
-
+        PreloadManager.preloadAssets(this); // Preload all assets
     }
 
     create() {
@@ -30,8 +23,12 @@ export default class ForestScene extends Phaser.Scene {
         this.createSpecialWalls();
 
         this.sceneChangeBox = this.physics.add.staticGroup();
-        this.sceneChangeBox.create(500, 10, null).setSize(300, 10).setOrigin(0, 0).setVisible(false); 
-        this.physics.add.overlap(this.playerManager.player, this.sceneChangeBox, this.changeScene, null, this);
+        this.sceneChangeTavern = this.sceneChangeBox.create(500, 10, null).setSize(300, 10).setOrigin(0, 0).setVisible(false); 
+        this.physics.add.overlap(this.playerManager.player, this.sceneChangeTavern, this.changeSceneTavern, null, this);
+
+        this.sceneChangeBattle = this.sceneChangeBox.create(100, 400, null).setSize(450, 10).setOrigin(0, 0).setVisible(false); 
+        this.physics.add.overlap(this.playerManager.player, this.sceneChangeBattle, this.changeSceneBattle, null, this);
+
     
         const forestCutter = this.add.sprite(540, 325, 'forest-cutter');
         forestCutter.setScale(0.5);
@@ -61,8 +58,12 @@ export default class ForestScene extends Phaser.Scene {
         this.evilForestBackdrop.setVisible(isForestVisible);
     }
 
-    changeScene() {
+    changeSceneTavern() {
         this.scene.start('tavern'); 
+    }
+
+    changeSceneBattle(){
+        this.scene.start('battle');
     }
     
     createObstacles() {

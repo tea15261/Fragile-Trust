@@ -1,4 +1,5 @@
 import PlayerManager from '/managers/PlayerManager.js';
+import PreloadManager from '/managers/PreloadManager.js';
 
 export default class TavernScene extends Phaser.Scene {
     constructor() {
@@ -6,13 +7,7 @@ export default class TavernScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('tavern', 'assets/environment/tavern.jpg'); 
-        this.load.image('customCursor', 'assets/cursor/hand_point.png'); 
-        this.load.spritesheet('playerIdle', 'assets/player/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
-        this.load.spritesheet('playerRun', 'assets/player/run/Run-Sheet.png', { frameWidth: 32, frameHeight: 32 });
-        this.load.spritesheet('handsIdle', 'assets/player/idle/Knight Idle holding nothing.png', { frameWidth: 32, frameHeight: 32 });
-        this.load.spritesheet('handsRun', 'assets/player/run/Knight Run holding nothing.png', { frameWidth: 64, frameHeight: 64 });
-        this.load.spritesheet('stranger', 'assets/npc/Stranger.png', { frameWidth: 64, frameHeight: 64 });
+        PreloadManager.preloadAssets(this);
     }
 
     create() {
