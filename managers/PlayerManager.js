@@ -50,6 +50,7 @@ export default class PlayerManager {
         this.initInventory();
         this.initStats();
     }
+    
     // player animations
     createAnimations() {
         this.scene.anims.create({
@@ -197,8 +198,7 @@ export default class PlayerManager {
         this.attackBar.text.setStroke('#000', 1.5);
 
         this.setStatBarsVisibility(false);
-    }
-    
+    } 
     
     setStatBarsVisibility(visible) {
         this.healthBar.bar.setVisible(visible);
@@ -223,7 +223,6 @@ export default class PlayerManager {
     
         return { bar, border, text };
     }
-    
 
     updateStatBars() {
         this.healthBar.bar.width = this.health;
@@ -256,7 +255,6 @@ export default class PlayerManager {
         }
     }
     
-
     update() {
         const speed = 160;
 
@@ -350,7 +348,6 @@ export default class PlayerManager {
             this.keyToggleReady = true;
         }
     }
-    
 
     hide() {
         this.player.setVisible(false);
