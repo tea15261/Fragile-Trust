@@ -9,8 +9,8 @@ export default class PlayerManager {
         this.inventoryContainer = null;
         this.blurFilter = null;
         this.keyToggleReady = true;
-        this.keyE = null; // Add this line
-        this.customCursor = null; // Add this line for custom cursor
+        this.keyE = null; 
+        this.customCursor = null; 
     
         this.init();
     }
@@ -38,8 +38,6 @@ export default class PlayerManager {
         this.createAnimations();
         this.player.anims.play('idle');
 
-
-        // Initialize inventory UI
         this.initInventory();
     }    
 
