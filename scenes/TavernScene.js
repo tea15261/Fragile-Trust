@@ -61,7 +61,7 @@ export default class TavernScene extends Phaser.Scene {
     }
 
     changeScene() {
-        this.scene.start('forest'); 
+        this.scene.start('forest', { from: 'tavern' }); 
     }
 
     createObstacles() {

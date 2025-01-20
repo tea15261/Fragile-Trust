@@ -10,42 +10,52 @@ export default class ForestScene extends Phaser.Scene {
         PreloadManager.preloadAssets(this); // Preload all assets
     }
 
-    create() {
-        this.forestBackdrop = this.forestBackdrop = this.add.image(320, 200, 'forest').setScale(0.4);
+    create(data) {
+        this.forestBackdrop = this.add.image(320, 200, 'forest').setScale(0.4);
         this.evilForestBackdrop = this.add.image(320, 200, 'evil-forest').setScale(0.4).setVisible(false);
-
-        this.playerManager = new PlayerManager(this); // initialize playermanager
+        this.nightForestBackdrop = this.add.image(320, 200, 'night-forest').setScale(0.4).setVisible(false);
+    
+        this.playerManager = new PlayerManager(this);
         this.cursors = this.input.keyboard.createCursorKeys();
         this.spacebar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         this.input.setDefaultCursor('none');
-
+    
         this.createObstacles();
         this.createSpecialWalls();
-
+    
         this.sceneChangeBox = this.physics.add.staticGroup();
-        this.sceneChangeTavern = this.sceneChangeBox.create(500, 10, null).setSize(300, 10).setOrigin(0, 0).setVisible(false); 
+        this.sceneChangeTavern = this.sceneChangeBox.create(500, 10, null).setSize(300, 10).setOrigin(0, 0).setVisible(false);
         this.physics.add.overlap(this.playerManager.player, this.sceneChangeTavern, this.changeSceneTavern, null, this);
-
-        this.sceneChangeBattle = this.sceneChangeBox.create(100, 400, null).setSize(450, 10).setOrigin(0, 0).setVisible(false); 
+    
+        this.sceneChangeBattle = this.sceneChangeBox.create(100, 400, null).setSize(450, 10).setOrigin(0, 0).setVisible(false);
         this.physics.add.overlap(this.playerManager.player, this.sceneChangeBattle, this.changeSceneBattle, null, this);
-
     
         const forestCutter = this.add.sprite(540, 325, 'forest-cutter');
         forestCutter.setScale(0.5);
         this.createForestCutterAnimation();
-        forestCutter.play('forest-cutter-chop')
+        forestCutter.play('forest-cutter-chop');
+    
+        // data based on previous scene
+        if (data.from === 'tavern') {
+            this.playerManager.player.setPosition(520, 60);
+            this.forestBackdrop.setVisible(true); 
+        } else if (data.from === 'battle') {
+            this.playerManager.player.setPosition(265, 390);
+            this.nightForestBackdrop.setVisible(true); 
+        }
     }
+    
 
     update() {
         this.playerManager.update(); 
 
-        // check if the player is overlapping with the special walls
         if (this.physics.overlap(this.playerManager.player, this.specialWalls)) {
             this.playerManager.hide();
         } else {
             this.playerManager.show();
         }
-        // Press space to make the background dark
+
+        // press space to make the background dark
         if (Phaser.Input.Keyboard.JustDown(this.spacebar)) {
             this.toggleForest();
         }
@@ -59,12 +69,13 @@ export default class ForestScene extends Phaser.Scene {
     }
 
     changeSceneTavern() {
-        this.scene.start('tavern'); 
+        this.scene.start('tavern', { from: 'forest' });
     }
-
-    changeSceneBattle(){
-        this.scene.start('battle');
+    
+    changeSceneBattle() {
+        this.scene.start('battle', { from: 'forest' });
     }
+    
     
     createObstacles() {
         const obstacleConfigs = [
