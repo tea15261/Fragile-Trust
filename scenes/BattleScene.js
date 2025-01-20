@@ -6,7 +6,6 @@ export default class BattleScene extends Phaser.Scene {
         super({ key: 'battle' });
     }
     preload() {
-        // load battle scene assets
         PreloadManager.preloadAssets(this);
     }
     

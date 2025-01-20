@@ -7,7 +7,7 @@ export default class ForestScene extends Phaser.Scene {
     }
 
     preload() {
-        PreloadManager.preloadAssets(this); // Preload all assets
+        PreloadManager.preloadAssets(this); 
     }
 
     create(data) {

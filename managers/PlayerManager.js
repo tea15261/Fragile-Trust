@@ -1,5 +1,6 @@
 export default class PlayerManager {
     constructor(scene) {
+        // Player Manager Stats
         this.scene = scene;
         this.player = null;
         this.hands = null;
@@ -11,16 +12,14 @@ export default class PlayerManager {
         this.keyToggleReady = true;
         this.keyE = null;
         this.customCursor = null;
-
-        // Player stats
-        this.health = 100;
-        this.defense = 50;
-        this.attack = 75;
-
-        // Stat bars
         this.healthBar = null;
         this.defenseBar = null;
         this.attackBar = null;
+
+        // Player Stats
+        this.health = 100;
+        this.defense = 50;
+        this.attack = 75;
 
         this.init();
     }
@@ -30,7 +29,7 @@ export default class PlayerManager {
         this.shadow.setOrigin(0.5, 1.5);
         this.keyE = this.scene.input.keyboard.addKey('E');
 
-        // Create player and hands sprites
+        // create player and hands sprites
         this.player = this.scene.physics.add.sprite(450, 100, 'playerIdle');
         this.player.flipX = true;
         this.player.setCollideWorldBounds(true);
@@ -51,7 +50,7 @@ export default class PlayerManager {
         this.initInventory();
         this.initStats();
     }
-
+    // player animations
     createAnimations() {
         this.scene.anims.create({
             key: 'idle',
@@ -82,6 +81,7 @@ export default class PlayerManager {
         });
     }
 
+    // inventory logic
     initInventory() {
         const inventoryCols = 5;
         const inventoryRows = 3;
@@ -122,17 +122,15 @@ export default class PlayerManager {
                 cell.setOrigin(0, 0);
                 cell.setStrokeStyle(2, 0xffffff);
     
-                // Enable interaction for hover effect
                 cell.setInteractive();
     
-                // Hover effect logic
                 cell.on('pointerover', () => {
-                    cell.setFillStyle(0xb3b3b3); // Lighten the background
-                    cell.setStrokeStyle(2, 0xff0000); // Add a red outline
+                    cell.setFillStyle(0xb3b3b3); 
+                    cell.setStrokeStyle(2, 0xff0000); 
                 });
                 cell.on('pointerout', () => {
-                    cell.setFillStyle(0x808080); // Reset background color
-                    cell.setStrokeStyle(2, 0xffffff); // Reset outline
+                    cell.setFillStyle(0x808080); 
+                    cell.setStrokeStyle(2, 0xffffff); 
                 });
     
                 this.inventoryContainer.add(cell);
@@ -149,7 +147,6 @@ export default class PlayerManager {
         hotbarSlot.setOrigin(0, 0);
         hotbarSlot.setStrokeStyle(2, 0xffff00);
     
-        // Add fists to hotbar if holding nothing
         if (this.playerState === 'holdingNothing') {
             const fistsIcon = this.scene.add.sprite(
                 inventoryWidth / 2,
@@ -159,13 +156,10 @@ export default class PlayerManager {
             fistsIcon.setOrigin(0.5, 0.5);
             fistsIcon.setScale(0.8);
             
-            // Debug logging
             console.log('Fists sprite created:', fistsIcon);
             
-            // Make sure the sprite exists and is added to the container
             if (fistsIcon) {
                 this.inventoryContainer.add(fistsIcon);
-                // Store reference to fists icon
                 this.fistsIcon = fistsIcon;
             } else {
                 console.error('Failed to create fists sprite');
@@ -175,21 +169,18 @@ export default class PlayerManager {
         hotbarSlot.setInteractive();
     
         hotbarSlot.on('pointerover', () => {
-            hotbarSlot.setFillStyle(0xb3b3b3); // Lighten the background
-            hotbarSlot.setStrokeStyle(2, 0xff0000); // Add a red outline
+            hotbarSlot.setFillStyle(0xb3b3b3); 
+            hotbarSlot.setStrokeStyle(2, 0xff0000); 
         });
     
         hotbarSlot.on('pointerout', () => {
-            hotbarSlot.setFillStyle(0xC5C6D0); // Reset background color
-            hotbarSlot.setStrokeStyle(2, 0xffff00); // Reset outline
+            hotbarSlot.setFillStyle(0xC5C6D0); 
+            hotbarSlot.setStrokeStyle(2, 0xffff00); 
         });
     
         this.inventoryContainer.add([inventoryBg, hotbarSlot]);
         this.inventoryContainer.setVisible(false);
-    }
-    
-    
-    
+    }  
 
     initStats() {
         const barSpacing = 20;
@@ -276,7 +267,6 @@ export default class PlayerManager {
         this.player.setVelocityX(0);
         this.player.setVelocityY(0);
 
-        // Handle inventory toggle separately from movement
         if (this.keyE.isDown && this.keyToggleReady) {
             this.toggleInventory();
             this.keyToggleReady = false;
@@ -284,21 +274,17 @@ export default class PlayerManager {
             this.keyToggleReady = true;
         }
 
-        // If inventory is visible, skip movement updates but still update positions
         if (this.inventoryVisible) {
             this.customCursor.setTexture('openCursor');
-            // Reset velocity
             this.player.setVelocityX(0);
             this.player.setVelocityY(0);
             
-            // Update animations to idle
             this.player.anims.play('idle', true);
             this.hands.visible = true;
             this.hands.anims.play('handsIdle', true);
             this.hands.x = this.player.x;
             this.hands.y = this.player.y;
             
-            // Update shadow
             this.shadow.x = this.player.x;
             this.shadow.y = this.player.y + 8;
             
@@ -309,7 +295,7 @@ export default class PlayerManager {
 
         const velocity = { x: 0, y: 0 };
 
-        // Movement logic
+        // movement logic
         if (this.scene.cursors.left.isDown) {
             velocity.x = -speed;
             this.player.flipX = true;
@@ -328,26 +314,22 @@ export default class PlayerManager {
             this.hands.y = this.player.y + 4;
         }
 
-        // Normalize diagonal movement
+        // diagonal movement
         if (velocity.x !== 0 && velocity.y !== 0) {
             const normalizationFactor = Math.sqrt(2) / 2;
             velocity.x *= normalizationFactor;
             velocity.y *= normalizationFactor;
         }
 
-        // Apply velocity
         this.player.setVelocity(velocity.x, velocity.y);
 
-        // Reset hands position if no vertical movement
         if (!this.scene.cursors.up.isDown && !this.scene.cursors.down.isDown) {
             this.hands.y = this.player.y + 2;
         }
 
-        // Update shadow position
         this.shadow.x = this.player.x;
         this.shadow.y = this.player.y + 8;
 
-        // Update animations based on movement
         if (this.player.body.velocity.x !== 0 || this.player.body.velocity.y !== 0) {
             this.player.anims.play('run', true);
             this.hands.visible = true;
@@ -360,7 +342,7 @@ export default class PlayerManager {
             this.hands.y = this.player.y;
         }
 
-        // Toggle inventory with "E" key
+        // toggle inventory with "E" key
         if (this.keyE.isDown && this.keyToggleReady) {
             this.toggleInventory();
             this.keyToggleReady = false;
