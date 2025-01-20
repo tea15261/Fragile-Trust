@@ -1,6 +1,6 @@
-// Basic Phaser game setup
 import TavernScene from '/scenes/TavernScene.js';
 import ForestScene from '/scenes/ForestScene.js';
+import BattleScene from '/scenes/BattleScene.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -9,13 +9,13 @@ const config = {
     physics: {  
         default: 'arcade',
         arcade: {
-            debug: false // Collision debugging
+            debug: true // collision debugging
         }
     },
-    scene: [ForestScene, TavernScene], 
+    scene: [ForestScene, TavernScene, BattleScene], 
     scale: {
-        mode: Phaser.Scale.FIT, // Scale the game to fit the window
-        autoCenter: Phaser.Scale.CENTER_BOTH // Center the game in the window
+        mode: Phaser.Scale.FIT, 
+        autoCenter: Phaser.Scale.CENTER_BOTH 
     },
     fps: {
         target: 60, 
