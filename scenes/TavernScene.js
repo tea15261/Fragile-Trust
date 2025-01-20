@@ -31,8 +31,6 @@ export default class TavernScene extends Phaser.Scene {
             return stranger;
         });
         
-        
-
         this.playerManager = new PlayerManager(this); // initialize playerManager
         this.cursors = this.input.keyboard.createCursorKeys();
         const playerX = 320; 
