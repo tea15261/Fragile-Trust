@@ -9,9 +9,19 @@ export default class PlayerManager {
         this.inventoryContainer = null;
         this.blurFilter = null;
         this.keyToggleReady = true;
-        this.keyE = null; 
-        this.customCursor = null; 
-    
+        this.keyE = null;
+        this.customCursor = null;
+
+        // Player stats
+        this.health = 100;
+        this.defense = 50;
+        this.attack = 75;
+
+        // Stat bars
+        this.healthBar = null;
+        this.defenseBar = null;
+        this.attackBar = null;
+
         this.init();
     }
 
@@ -29,7 +39,7 @@ export default class PlayerManager {
         this.player.setOffset(0, 0);
 
         this.customCursor = this.scene.add.sprite(0, 0, 'customCursor').setOrigin(0.5, 0.5).setScale(0.6);
-        this.customCursor.setDepth(10); // Make sure it appears above other elements    
+        this.customCursor.setDepth(10);
 
         this.hands = this.scene.add.sprite(this.player.x, this.player.y, 'handsIdle');
         this.hands.setOrigin(0.5, 1);
@@ -39,7 +49,8 @@ export default class PlayerManager {
         this.player.anims.play('idle');
 
         this.initInventory();
-    }    
+        this.initStats();
+    }
 
     createAnimations() {
         this.scene.anims.create({
@@ -72,37 +83,31 @@ export default class PlayerManager {
     }
 
     initInventory() {
-        // Inventory dimensions and layout
-        const inventoryCols = 5; // Number of columns in the inventory grid
-        const inventoryRows = 3; // Number of rows in the inventory grid
-        const cellSize = 40; // Size of each cell in the grid
-        const spacing = 5; // Spacing between cells
-        const hotbarYOffset = 20; // Offset for the hotbar below the grid
+        const inventoryCols = 5;
+        const inventoryRows = 3;
+        const cellSize = 40;
+        const spacing = 5;
+        const hotbarYOffset = 20;
     
-        // Calculate total inventory width and height
         const inventoryWidth = inventoryCols * (cellSize + spacing) - spacing;
         const inventoryHeight = inventoryRows * (cellSize + spacing) - spacing;
     
-        // Calculate centered position for inventory
         const centerX = this.scene.cameras.main.width / 2 - inventoryWidth / 2;
         const centerY = this.scene.cameras.main.height / 2 - inventoryHeight / 2;
     
-        // Create a container for the inventory UI
         this.inventoryContainer = this.scene.add.container(centerX, centerY);
     
-        // Draw inventory background with a lighter color
         const inventoryBg = this.scene.add.rectangle(
             inventoryWidth / 2,
             inventoryHeight / 2,
             inventoryWidth + 20,
             inventoryHeight + 20,
-            0x666666, // Lighter background color
+            0x666666,
             0.9
         );
         inventoryBg.setOrigin(0.5, 0.5);
-        inventoryBg.setStrokeStyle(2, 0x787276); // Set border color to #373737
+        inventoryBg.setStrokeStyle(2, 0x787276);
     
-        // Add the grid cells for inventory with the specified color
         for (let row = 0; row < inventoryRows; row++) {
             for (let col = 0; col < inventoryCols; col++) {
                 const cellX = col * (cellSize + spacing);
@@ -112,44 +117,149 @@ export default class PlayerManager {
                     cellY,
                     cellSize,
                     cellSize,
-                    0x808080 // Cell color for inventory
+                    0x808080
                 );
                 cell.setOrigin(0, 0);
-                cell.setStrokeStyle(2, 0xffffff); // Optional: Add border
+                cell.setStrokeStyle(2, 0xffffff);
+    
+                // Enable interaction for hover effect
+                cell.setInteractive();
+    
+                // Hover effect logic
+                cell.on('pointerover', () => {
+                    cell.setFillStyle(0xb3b3b3); // Lighten the background
+                    cell.setStrokeStyle(2, 0xff0000); // Add a red outline
+                });
+                cell.on('pointerout', () => {
+                    cell.setFillStyle(0x808080); // Reset background color
+                    cell.setStrokeStyle(2, 0xffffff); // Reset outline
+                });
+    
                 this.inventoryContainer.add(cell);
             }
         }
     
-        // Create the single "hotbar" slot with the specified color
         const hotbarSlot = this.scene.add.rectangle(
             inventoryWidth / 2 - cellSize / 2,
             inventoryHeight + hotbarYOffset,
             cellSize,
             cellSize,
-            0xC5C6D0 // Cell color for hotbar slot
+            0xC5C6D0
         );
         hotbarSlot.setOrigin(0, 0);
-        hotbarSlot.setStrokeStyle(2, 0xffff00); // Yellow border for distinction
+        hotbarSlot.setStrokeStyle(2, 0xffff00);
     
-        // Add background and elements to container
+        // Add fists to hotbar if holding nothing
+        if (this.playerState === 'holdingNothing') {
+            const fistsIcon = this.scene.add.sprite(
+                inventoryWidth / 2,
+                inventoryHeight + hotbarYOffset + cellSize / 2,
+                'fists'
+            );
+            fistsIcon.setOrigin(0.5, 0.5);
+            fistsIcon.setScale(0.8);
+            
+            // Debug logging
+            console.log('Fists sprite created:', fistsIcon);
+            
+            // Make sure the sprite exists and is added to the container
+            if (fistsIcon) {
+                this.inventoryContainer.add(fistsIcon);
+                // Store reference to fists icon
+                this.fistsIcon = fistsIcon;
+            } else {
+                console.error('Failed to create fists sprite');
+            }
+        }
+    
+        hotbarSlot.setInteractive();
+    
+        hotbarSlot.on('pointerover', () => {
+            hotbarSlot.setFillStyle(0xb3b3b3); // Lighten the background
+            hotbarSlot.setStrokeStyle(2, 0xff0000); // Add a red outline
+        });
+    
+        hotbarSlot.on('pointerout', () => {
+            hotbarSlot.setFillStyle(0xC5C6D0); // Reset background color
+            hotbarSlot.setStrokeStyle(2, 0xffff00); // Reset outline
+        });
+    
         this.inventoryContainer.add([inventoryBg, hotbarSlot]);
-    
-        // Hide inventory initially
         this.inventoryContainer.setVisible(false);
     }
     
     
+    
+
+    initStats() {
+        const barSpacing = 20;
+    
+        const statsX = 140; 
+        const statsY = 140;
+    
+        this.healthBar = this.createStatBar(statsX, statsY, 100, 10, 0xff0000, 'Health');
+        this.defenseBar = this.createStatBar(statsX, statsY + barSpacing, 100, 10, 0xa0522d, 'Defense');
+        this.attackBar = this.createStatBar(statsX, statsY + 2 * barSpacing, 100, 10, 0xffff00, 'Attack');
+    
+        this.healthBar.text.setStroke('#000', 1.5);
+        this.defenseBar.text.setStroke('#000', 1.5);
+        this.attackBar.text.setStroke('#000', 1.5);
+
+        this.setStatBarsVisibility(false);
+    }
+    
+    
+    setStatBarsVisibility(visible) {
+        this.healthBar.bar.setVisible(visible);
+        this.healthBar.border.setVisible(visible);
+        this.healthBar.text.setVisible(visible);
+    
+        this.defenseBar.bar.setVisible(visible);
+        this.defenseBar.border.setVisible(visible);
+        this.defenseBar.text.setVisible(visible);
+    
+        this.attackBar.bar.setVisible(visible);
+        this.attackBar.border.setVisible(visible);
+        this.attackBar.text.setVisible(visible);
+    }
+
+    createStatBar(x, y, width, height, color, label) {
+        const bar = this.scene.add.rectangle(x, y, width, height, color).setOrigin(0.5, 0.5);
+        const border = this.scene.add.rectangle(x, y, width + 2, height + 2).setStrokeStyle(2, 0xffffff).setOrigin(0.5, 0.5);
+        const text = this.scene.add.text(x - width / 2 - 10, y - height / 2, label, { fontSize: '12px', color: '#ffffff' })
+            .setOrigin(0, 0.5)
+            .setStroke('#000000', 1.5);
+    
+        return { bar, border, text };
+    }
+    
+
+    updateStatBars() {
+        this.healthBar.bar.width = this.health;
+        this.defenseBar.bar.width = this.defense;
+        this.attackBar.bar.width = this.attack;
+    }
 
     toggleInventory() {
         this.inventoryVisible = !this.inventoryVisible;
         this.inventoryContainer.setVisible(this.inventoryVisible);
-    
+        const statVisibility = this.inventoryVisible;
+        this.healthBar.bar.setVisible(statVisibility);
+        this.healthBar.border.setVisible(statVisibility);
+        this.healthBar.text.setVisible(statVisibility);
+
+        this.defenseBar.bar.setVisible(statVisibility);
+        this.defenseBar.border.setVisible(statVisibility);
+        this.defenseBar.text.setVisible(statVisibility);
+
+        this.attackBar.bar.setVisible(statVisibility);
+        this.attackBar.border.setVisible(statVisibility);
+        this.attackBar.text.setVisible(statVisibility);
+
         if (this.inventoryVisible) {
-            // Pause game updates
             this.scene.physics.pause();
             this.scene.anims.pauseAll();
         } else {
-            // Resume game updates
             this.scene.physics.resume();
             this.scene.anims.resumeAll();
         }
@@ -159,6 +269,7 @@ export default class PlayerManager {
     update() {
         const speed = 160;
 
+        this.updateStatBars();
         this.customCursor.x = this.scene.input.x;
         this.customCursor.y = this.scene.input.y;
 
@@ -172,9 +283,10 @@ export default class PlayerManager {
         } else if (this.keyE.isUp) {
             this.keyToggleReady = true;
         }
-    
+
         // If inventory is visible, skip movement updates but still update positions
         if (this.inventoryVisible) {
+            this.customCursor.setTexture('openCursor');
             // Reset velocity
             this.player.setVelocityX(0);
             this.player.setVelocityY(0);
@@ -191,6 +303,8 @@ export default class PlayerManager {
             this.shadow.y = this.player.y + 8;
             
             return;
+        } else {
+            this.customCursor.setTexture('customCursor');
         }
 
         const velocity = { x: 0, y: 0 };
