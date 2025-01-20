@@ -44,7 +44,6 @@ export default class ForestScene extends Phaser.Scene {
             this.nightForestBackdrop.setVisible(true); 
         }
     }
-    
 
     update() {
         this.playerManager.update(); 
@@ -76,7 +75,6 @@ export default class ForestScene extends Phaser.Scene {
         this.scene.start('battle', { from: 'forest' });
     }
     
-    
     createObstacles() {
         const obstacleConfigs = [
             { x: 0, y: 200, width: 400, height: 150 }, 
@@ -105,7 +103,6 @@ export default class ForestScene extends Phaser.Scene {
     
         this.physics.add.collider(this.playerManager.player, this.obstacles);
     }
-    
 
     createSpecialWalls() {
     const specialWallConfigs = [
