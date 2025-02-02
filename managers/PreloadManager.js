@@ -22,5 +22,8 @@ export default class PreloadManager {
         // NPC assets
         scene.load.spritesheet('forest-cutter', 'assets/npc/forest-cutter.png', { frameWidth: 90, frameHeight: 75 });
         scene.load.spritesheet('stranger', 'assets/npc/Stranger.png', { frameWidth: 64, frameHeight: 64 });
+
+        // Monster assets
+        
     }
 }
