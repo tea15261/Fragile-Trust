@@ -1,35 +1,45 @@
 export default class PlayerManager {
-    constructor(scene) {
+    constructor(scene, inBattle = false) {
         // Player Manager Stats
         this.scene = scene;
+        this.inBattle = inBattle;
         this.player = null;
         this.hands = null;
         this.shadow = null;
         this.playerState = 'holdingNothing';
         this.inventoryVisible = false;
         this.inventoryContainer = null;
-        this.blurFilter = null;
         this.keyToggleReady = true;
         this.keyE = null;
         this.customCursor = null;
-        this.healthBar = null;
-        this.defenseBar = null;
-        this.attackBar = null;
+        // To hold our radar chart graphics object.
+        this.radarChart = null;
+        // To hold our radar chart label text objects.
+        this.radarLabels = [];
+        this.statTexts = []; // Array to hold text objects for stats
+
+        // Added: Reference to our new inventory button.
+        this.inventoryButton = null;
 
         // Player Stats
-        this.health = 100;
-        this.defense = 50;
-        this.attack = 75;
-
+        this.stats = {
+            health: 100, // Health
+            defense: 50, // Defense
+            attack: 75, // Attack Power
+            speed: 160, // Move Speed
+            luck: 40, // Critical Hit
+            agility: 80 // Dodge Chance
+        };
         this.init();
     }
 
     init() {
+        // Create shadow, input, and sprites.
         this.shadow = this.scene.add.ellipse(400, 100, 30, 10, 0x000000, 0.5);
         this.shadow.setOrigin(0.5, 1.5);
         this.keyE = this.scene.input.keyboard.addKey('E');
 
-        // create player and hands sprites
+        // Create player sprite.
         this.player = this.scene.physics.add.sprite(450, 100, 'playerIdle');
         this.player.flipX = true;
         this.player.setCollideWorldBounds(true);
@@ -37,21 +47,32 @@ export default class PlayerManager {
         this.player.setSize(32, 32);
         this.player.setOffset(0, 0);
 
-        this.customCursor = this.scene.add.sprite(0, 0, 'customCursor').setOrigin(0.5, 0.5).setScale(0.6);
+        // Create custom cursor.
+        this.customCursor = this.scene.add.sprite(0, 0, 'customCursor')
+            .setOrigin(0.5, 0.5)
+            .setScale(0.6);
         this.customCursor.setDepth(10);
 
+        // Create hands sprite.
         this.hands = this.scene.add.sprite(this.player.x, this.player.y, 'handsIdle');
         this.hands.setOrigin(0.5, 1);
         this.hands.visible = false;
 
+        // Create animations.
         this.createAnimations();
         this.player.anims.play('idle');
 
+        // Initialize inventory and stat bars.
         this.initInventory();
-        this.initStats();
+
+        // Draw the radar chart and stat values.
+        if(!this.inBattle) {
+            this.drawRadarChart(250, 85, 55, this.stats);
+            this.displayStatValues(350, 35, this.stats); // Position the stat values to the right of the radar
+        }
     }
     
-    // player animations
+    // Player animations.
     createAnimations() {
         this.scene.anims.create({
             key: 'idle',
@@ -82,7 +103,7 @@ export default class PlayerManager {
         });
     }
 
-    // inventory logic
+    // Inventory logic.
     initInventory() {
         const inventoryCols = 5;
         const inventoryRows = 3;
@@ -96,7 +117,8 @@ export default class PlayerManager {
         const centerX = this.scene.cameras.main.width / 2 - inventoryWidth / 2;
         const centerY = this.scene.cameras.main.height / 2 - inventoryHeight / 2;
     
-        this.inventoryContainer = this.scene.add.container(centerX, centerY);
+        const inventoryYPosition = this.inBattle ? centerY - 100 : centerY + 50;
+        this.inventoryContainer = this.scene.add.container(centerX, inventoryYPosition);
     
         const inventoryBg = this.scene.add.rectangle(
             inventoryWidth / 2,
@@ -181,71 +203,139 @@ export default class PlayerManager {
     
         this.inventoryContainer.add([inventoryBg, hotbarSlot]);
         this.inventoryContainer.setVisible(false);
-    }  
 
-    initStats() {
-        const barSpacing = 20;
-    
-        const statsX = 140; 
-        const statsY = 140;
-    
-        this.healthBar = this.createStatBar(statsX, statsY, 100, 10, 0xff0000, 'Health');
-        this.defenseBar = this.createStatBar(statsX, statsY + barSpacing, 100, 10, 0xa0522d, 'Defense');
-        this.attackBar = this.createStatBar(statsX, statsY + 2 * barSpacing, 100, 10, 0xffff00, 'Attack');
-    
-        this.healthBar.text.setStroke('#000', 1.5);
-        this.defenseBar.text.setStroke('#000', 1.5);
-        this.attackBar.text.setStroke('#000', 1.5);
+        // ------------------------------
+        // Create the interactive inventory button.
+        // This button is drawn as a grey, sideways trapezoid (with a 300px-tall left side and a 260px-tall right side)
+        // that is 20px wide. The longer base (left side) is placed adjacent to the inventory, and the inner triangle
+        // (drawn in a darker grey) points to the right, away from the inventory.
+        // The button is positioned relative to the screen center.
+        // ------------------------------
 
-        this.setStatBarsVisibility(false);
-    } 
-    
-    setStatBarsVisibility(visible) {
-        this.healthBar.bar.setVisible(visible);
-        this.healthBar.border.setVisible(visible);
-        this.healthBar.text.setVisible(visible);
-    
-        this.defenseBar.bar.setVisible(visible);
-        this.defenseBar.border.setVisible(visible);
-        this.defenseBar.text.setVisible(visible);
-    
-        this.attackBar.bar.setVisible(visible);
-        this.attackBar.border.setVisible(visible);
-        this.attackBar.text.setVisible(visible);
-    }
+        // Calculate the inventory’s right edge.
+        const inventoryRightEdge = centerX + inventoryWidth;
+        // Determine the button’s x position: 20 pixels to the right of the inventory’s right edge.
+        const buttonX = inventoryRightEdge + 20;
+        // For vertical positioning, center the button on the screen.
+        const buttonY = this.scene.cameras.main.height / 2;
 
-    createStatBar(x, y, width, height, color, label) {
-        const bar = this.scene.add.rectangle(x, y, width, height, color).setOrigin(0.5, 0.5);
-        const border = this.scene.add.rectangle(x, y, width + 2, height + 2).setStrokeStyle(2, 0xffffff).setOrigin(0.5, 0.5);
-        const text = this.scene.add.text(x - width / 2 - 10, y - height / 2, label, { fontSize: '12px', color: '#ffffff' })
-            .setOrigin(0, 0.5)
-            .setStroke('#000000', 1.5);
-    
-        return { bar, border, text };
-    }
+        // Create a Graphics object for the button.
+        if(!this.inBattle) {
+            this.inventoryButton = this.scene.add.graphics({ x: buttonX, y: buttonY });
+            // Define the points for the trapezoid in the button’s local coordinate space.
+        // The left vertical edge (x = 0) is 300px tall (from y = -150 to y = 150).
+        // The right vertical edge (x = 20) is 260px tall (from y = -130 to y = 130).
+        const trapezoidPoints = [
+            { x: 0,  y: -150 },   // left top (touching inventory)
+            { x: 0,  y: 150 },    // left bottom
+            { x: 20, y: 130 },    // right bottom (shorter)
+            { x: 20, y: -130 }    // right top (shorter)
+        ];
 
-    updateStatBars() {
-        this.healthBar.bar.width = this.health;
-        this.defenseBar.bar.width = this.defense;
-        this.attackBar.bar.width = this.attack;
+        // Draw the trapezoid.
+        this.inventoryButton.fillStyle(0x808080, 1);
+        this.inventoryButton.beginPath();
+        this.inventoryButton.moveTo(trapezoidPoints[0].x, trapezoidPoints[0].y);
+        for (let i = 1; i < trapezoidPoints.length; i++) {
+            this.inventoryButton.lineTo(trapezoidPoints[i].x, trapezoidPoints[i].y);
+        }
+        this.inventoryButton.closePath();
+        this.inventoryButton.fillPath();
+    
+        // Define the inner triangle.
+        // (Revised so that its tip is at the far right.)
+        const trianglePoints = [
+            { x: 18, y: 0 },   // tip at right side
+            { x: 8,  y: -10 },
+            { x: 8,  y: 10 }
+        ];
+    
+        // Draw the inner triangle.
+        this.inventoryButton.fillStyle(0x606060, 1);
+        this.inventoryButton.beginPath();
+        this.inventoryButton.moveTo(trianglePoints[0].x, trianglePoints[0].y);
+        for (let i = 1; i < trianglePoints.length; i++) {
+            this.inventoryButton.lineTo(trianglePoints[i].x, trianglePoints[i].y);
+        }
+        this.inventoryButton.closePath();
+        this.inventoryButton.fillPath();
+    
+        // Set interactive hit area using the trapezoid.
+        const hitArea = new Phaser.Geom.Polygon(trapezoidPoints);
+        this.inventoryButton.setInteractive(hitArea, Phaser.Geom.Polygon.Contains);
+    
+        // Hover effects.
+        this.inventoryButton.on('pointerover', () => {
+            this.inventoryButton.clear();
+            this.inventoryButton.fillStyle(0x909090, 1);
+            this.inventoryButton.beginPath();
+            this.inventoryButton.moveTo(trapezoidPoints[0].x, trapezoidPoints[0].y);
+            for (let i = 1; i < trapezoidPoints.length; i++) {
+                this.inventoryButton.lineTo(trapezoidPoints[i].x, trapezoidPoints[i].y);
+            }
+            this.inventoryButton.closePath();
+            this.inventoryButton.fillPath();
+            this.inventoryButton.fillStyle(0x606060, 1);
+            this.inventoryButton.beginPath();
+            this.inventoryButton.moveTo(trianglePoints[0].x, trianglePoints[0].y);
+            for (let i = 1; i < trianglePoints.length; i++) {
+                this.inventoryButton.lineTo(trianglePoints[i].x, trianglePoints[i].y);
+            }
+            this.inventoryButton.closePath();
+            this.inventoryButton.fillPath();
+        });
+        this.inventoryButton.on('pointerout', () => {
+            this.inventoryButton.clear();
+            this.inventoryButton.fillStyle(0x808080, 1);
+            this.inventoryButton.beginPath();
+            this.inventoryButton.moveTo(trapezoidPoints[0].x, trapezoidPoints[0].y);
+            for (let i = 1; i < trapezoidPoints.length; i++) {
+                this.inventoryButton.lineTo(trapezoidPoints[i].x, trapezoidPoints[i].y);
+            }
+            this.inventoryButton.closePath();
+            this.inventoryButton.fillPath();
+            this.inventoryButton.fillStyle(0x606060, 1);
+            this.inventoryButton.beginPath();
+            this.inventoryButton.moveTo(trianglePoints[0].x, trianglePoints[0].y);
+            for (let i = 1; i < trianglePoints.length; i++) {
+                this.inventoryButton.lineTo(trianglePoints[i].x, trianglePoints[i].y);
+            }
+            this.inventoryButton.closePath();
+            this.inventoryButton.fillPath();
+        });
+    
+        // IMPORTANT: Instead of toggling the inventory, clicking this button now
+        // shows the Skill Tree page.
+        this.inventoryButton.on('pointerdown', () => {
+            this.showSkillTree();
+        });
+    
+        // The inventory button should be visible while the inventory page is active.
+        this.inventoryButton.visible = false;
+        }
+        
     }
 
     toggleInventory() {
         this.inventoryVisible = !this.inventoryVisible;
         this.inventoryContainer.setVisible(this.inventoryVisible);
-        const statVisibility = this.inventoryVisible;
-        this.healthBar.bar.setVisible(statVisibility);
-        this.healthBar.border.setVisible(statVisibility);
-        this.healthBar.text.setVisible(statVisibility);
+        
+        // Toggle the radar chart and its labels visibility in sync with the inventory.
+        if (this.radarChart) {
+            this.radarChart.visible = this.inventoryVisible;
+        }
+        if (this.radarLabels) {
+            this.radarLabels.forEach(label => label.setVisible(this.inventoryVisible));
+        }
+        if (this.statTexts) {
+            this.statTexts.forEach(text => text.setVisible(this.inventoryVisible));
+        }
 
-        this.defenseBar.bar.setVisible(statVisibility);
-        this.defenseBar.border.setVisible(statVisibility);
-        this.defenseBar.text.setVisible(statVisibility);
-
-        this.attackBar.bar.setVisible(statVisibility);
-        this.attackBar.border.setVisible(statVisibility);
-        this.attackBar.text.setVisible(statVisibility);
-
+        // Also toggle the inventory button.
+        if (this.inventoryButton) {
+            this.inventoryButton.visible = this.inventoryVisible;
+        }
+    
         if (this.inventoryVisible) {
             this.scene.physics.pause();
             this.scene.anims.pauseAll();
@@ -254,23 +344,194 @@ export default class PlayerManager {
             this.scene.anims.resumeAll();
         }
     }
+
     
-    update() {
-        const speed = 160;
 
-        this.updateStatBars();
-        this.customCursor.x = this.scene.input.x;
-        this.customCursor.y = this.scene.input.y;
+// ----------------------------------------------------------------------
+// SKILL TREE PAGE SETUP
+// ----------------------------------------------------------------------
+showSkillTree() {
+    // Hide the inventory and its button, as well as the radar and stat texts.
+    this.inventoryContainer.setVisible(false);
+    if (this.radarChart) this.radarChart.visible = false;
+    this.radarLabels.forEach(label => label.setVisible(false));
+    this.statTexts.forEach(text => text.setVisible(false));
+    this.inventoryButton.visible = false;
 
-        this.player.setVelocityX(0);
-        this.player.setVelocityY(0);
+    // Create or show skill tree container
+    if (!this.skillTreeContainer) {
+        this.skillTreeContainer = this.scene.add.container(0, 0);
+        const centerX = this.scene.cameras.main.width / 2;
+        const centerY = this.scene.cameras.main.height / 2;
+        const gradientAlpha = 0.3;
 
-        if (this.keyE.isDown && this.keyToggleReady) {
-            this.toggleInventory();
-            this.keyToggleReady = false;
-        } else if (this.keyE.isUp) {
-            this.keyToggleReady = true;
+        // Background
+        const bg = this.scene.add.rectangle(
+            centerX, centerY,
+            this.scene.cameras.main.width,
+            this.scene.cameras.main.height,
+            0x000000, 0.7
+        );
+        this.skillTreeContainer.add(bg);
+
+        // Create X dividers
+        const graphics = this.scene.add.graphics();
+        graphics.lineStyle(2, 0xffffff, 0.5);
+        // Top-left to bottom-right
+        graphics.moveTo(0, 0);
+        graphics.lineTo(this.scene.cameras.main.width, this.scene.cameras.main.height);
+        // Top-right to bottom-left
+        graphics.moveTo(this.scene.cameras.main.width, 0);
+        graphics.lineTo(0, this.scene.cameras.main.height);
+        graphics.strokePath();
+        this.skillTreeContainer.add(graphics);
+
+        // Create category triangles with solid colors
+        const createTriangle = (color, points) => {
+            const triangle = this.scene.add.graphics();
+            triangle.fillStyle(color, gradientAlpha);
+            triangle.beginPath();
+            triangle.moveTo(points[0].x, points[0].y);
+            points.forEach(point => triangle.lineTo(point.x, point.y));
+            triangle.closePath();
+            triangle.fillPath();
+            return triangle;
+        };
+
+        // Offensive (Top triangle)
+        createTriangle(0xff0000, [
+            { x: 0, y: 0 },
+            { x: this.scene.cameras.main.width, y: 0 },
+            { x: centerX, y: centerY }
+        ]);
+
+        // Defensive (Bottom triangle)
+        createTriangle(0x8B4513, [
+            { x: 0, y: this.scene.cameras.main.height },
+            { x: this.scene.cameras.main.width, y: this.scene.cameras.main.height },
+            { x: centerX, y: centerY }
+        ]);
+
+        // Magic (Right triangle)
+        createTriangle(0x800080, [
+            { x: this.scene.cameras.main.width, y: 0 },
+            { x: this.scene.cameras.main.width, y: this.scene.cameras.main.height },
+            { x: centerX, y: centerY }
+        ]);
+
+        // Utility (Left triangle)
+        createTriangle(0x0000ff, [
+            { x: 0, y: 0 },
+            { x: 0, y: this.scene.cameras.main.height },
+            { x: centerX, y: centerY }
+        ]);
+
+        // Add labels
+        const labelStyle = { fontSize: '24px', fill: '#ffffff', fontStyle: 'bold' };
+        this.skillTreeContainer.add([
+            this.scene.add.text(centerX, 50, 'OFFENSIVE', labelStyle).setOrigin(0.5),
+            this.scene.add.text(centerX, this.scene.cameras.main.height - 50, 'DEFENSIVE', labelStyle).setOrigin(0.5),
+            this.scene.add.text(this.scene.cameras.main.width - 100, centerY, 'MAGIC', labelStyle).setOrigin(0.5),
+            this.scene.add.text(100, centerY, 'UTILITY', labelStyle).setOrigin(0.5)
+        ]);
+
+        // Add back button
+        this.skillTreeButton = this.createNavButton(
+            this.scene.cameras.main.width - 610, 
+            this.scene.cameras.main.height / 2,
+            true
+        );
+        this.skillTreeContainer.add(this.skillTreeButton);
+    }
+
+    this.skillTreeContainer.setVisible(true);
+}
+
+createNavButton(x, y, flip = false) {
+    const button = this.scene.add.graphics({ x: x, y: y });
+    const trapezoidPoints = flip ? [
+        { x: 0, y: -150 }, { x: 0, y: 150 },
+        { x: -20, y: 130 }, { x: -20, y: -130 }
+    ] : [
+        { x: 0, y: -150 }, { x: 0, y: 150 },
+        { x: 20, y: 130 }, { x: 20, y: -130 }
+    ];
+
+    // Button base
+    button.fillStyle(0x808080, 1);
+    button.beginPath();
+    button.moveTo(trapezoidPoints[0].x, trapezoidPoints[0].y);
+    trapezoidPoints.forEach(p => button.lineTo(p.x, p.y));
+    button.closePath().fillPath();
+
+    // Arrow
+    const arrowPoints = flip ? [
+        { x: -18, y: 0 }, { x: -8, y: -10 }, { x: -8, y: 10 }
+    ] : [
+        { x: 18, y: 0 }, { x: 8, y: -10 }, { x: 8, y: 10 }
+    ];
+    
+    button.fillStyle(0x606060, 1);
+    button.beginPath();
+    button.moveTo(arrowPoints[0].x, arrowPoints[0].y);
+    arrowPoints.forEach(p => button.lineTo(p.x, p.y));
+    button.closePath().fillPath();
+
+    // Interactivity
+    button.setInteractive(new Phaser.Geom.Polygon(trapezoidPoints), Phaser.Geom.Polygon.Contains);
+    button.on('pointerover', () => button.fillStyle(0x909090, 1));
+    button.on('pointerout', () => button.fillStyle(0x808080, 1));
+    button.on('pointerdown', () => this.hideSkillTree());
+
+    return button;
+}
+
+        hideSkillTree() {
+            // Hide the skill tree container.
+            if (this.skillTreeContainer) {
+                this.skillTreeContainer.visible = false;
+            }
+            // Show the inventory container and its button.
+            this.inventoryContainer.setVisible(true);
+            this.inventoryButton.visible = true;
+            
+            // Also make the radar chart and its associated labels and stat texts visible.
+            if (this.radarChart) {
+                this.radarChart.visible = true;
+            }
+            if (this.radarLabels) {
+                this.radarLabels.forEach(label => label.setVisible(true));
+            }
+            if (this.statTexts) {
+                this.statTexts.forEach(text => text.setVisible(true));
+            }
         }
+
+    
+    
+        update() {
+            const speed = this.stats.speed;
+
+            this.customCursor.x = this.scene.input.x;
+            this.customCursor.y = this.scene.input.y;
+
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0);
+
+            // Instead of directly toggling the inventory on keyE,
+            // check if any UI is open.
+            if (this.keyE.isDown && this.keyToggleReady) {
+                if (this.inventoryVisible || (this.skillTreeContainer && this.skillTreeContainer.visible)) {
+                    // If any UI (inventory or skill tree) is visible, hide it.
+                    this.hideUI();
+                } else {
+                    // If no UI is visible, open the inventory.
+                    this.toggleInventory();
+                }
+                this.keyToggleReady = false;
+            } else if (this.keyE.isUp) {
+                this.keyToggleReady = true;
+            }
 
         if (this.inventoryVisible) {
             this.customCursor.setTexture('openCursor');
@@ -293,7 +554,7 @@ export default class PlayerManager {
 
         const velocity = { x: 0, y: 0 };
 
-        // movement logic
+        // Movement logic.
         if (this.scene.cursors.left.isDown) {
             velocity.x = -speed;
             this.player.flipX = true;
@@ -312,7 +573,7 @@ export default class PlayerManager {
             this.hands.y = this.player.y + 4;
         }
 
-        // diagonal movement
+        // Diagonal movement normalization.
         if (velocity.x !== 0 && velocity.y !== 0) {
             const normalizationFactor = Math.sqrt(2) / 2;
             velocity.x *= normalizationFactor;
@@ -340,7 +601,7 @@ export default class PlayerManager {
             this.hands.y = this.player.y;
         }
 
-        // toggle inventory with "E" key
+        // Toggle inventory with "E" key.
         if (this.keyE.isDown && this.keyToggleReady) {
             this.toggleInventory();
             this.keyToggleReady = false;
@@ -359,5 +620,139 @@ export default class PlayerManager {
         this.player.setVisible(true);
         this.hands.setVisible(true);
         this.shadow.setVisible(true); 
+    }
+
+    hideUI() {
+        // Hide inventory UI.
+        if(!this.inBattle) {
+            this.inventoryButton.visible = false;
+        
+            // Hide the radar chart and stat texts.
+            if (this.radarChart) {
+                this.radarChart.visible = false;
+            }
+            if (this.radarLabels) {
+                this.radarLabels.forEach(label => label.setVisible(false));
+            }
+            if (this.statTexts) {
+                this.statTexts.forEach(text => text.setVisible(false));
+            }
+            
+            // Hide skill tree UI if it exists.
+            if (this.skillTreeContainer) {
+                this.skillTreeContainer.visible = false;
+            }
+    }
+        this.inventoryContainer.setVisible(false);
+        this.inventoryVisible = false; // make sure our flag is updated
+        this.scene.physics.resume();
+        this.scene.anims.resumeAll();
+    }
+    
+
+    // ---------------------------------------------------------
+    // Draws a radar (spider) chart with 6 axes: Health, Defense, Attack, Speed, Luck, Agility.
+    // stats: an object containing the current stat values.
+    // (e.g. {health:100, defense:50, attack:75, speed:60, luck:40, agility:80})
+    // (x, y) specify the center of the chart and 'radius' determines its size.
+    drawRadarChart(x, y, radius, stats) {
+        // Define the axes in order.
+        const axes = ["health", "defense", "attack", "speed", "luck", "agility"];
+        const numAxes = axes.length;
+
+        // Define maximum values for normalization (adjust these values as needed).
+        const maxValues = {
+            health: 500,
+            defense: 250,
+            attack: 250,
+            speed: 420,
+            luck: 250,
+            agility: 250
+        };
+
+        // Create a Graphics object for drawing.
+        const graphics = this.scene.add.graphics();
+        // Initially hide the radar chart.
+        graphics.visible = false;
+
+        // Draw concentric polygons for the grid.
+        graphics.lineStyle(1, 0xffffff, 0.5);
+        const gridLevels = 5;
+        for (let level = 1; level <= gridLevels; level++) {
+            const levelRadius = (radius * level) / gridLevels;
+            const points = [];
+            for (let i = 0; i < numAxes; i++) {
+                const angle = Phaser.Math.DegToRad((360 / numAxes) * i - 90);
+                const dx = x + levelRadius * Math.cos(angle);
+                const dy = y + levelRadius * Math.sin(angle);
+                points.push(new Phaser.Math.Vector2(dx, dy));
+            }
+            graphics.strokePoints(points, true);
+        }
+
+        // Draw the axis lines.
+        for (let i = 0; i < numAxes; i++) {
+            const angle = Phaser.Math.DegToRad((360 / numAxes) * i - 90);
+            const dx = x + radius * Math.cos(angle);
+            const dy = y + radius * Math.sin(angle);
+            graphics.lineBetween(x, y, dx, dy);
+        }
+
+        // Create points for the data polygon.
+        const dataPoints = [];
+        for (let i = 0; i < numAxes; i++) {
+            const stat = axes[i];
+            const value = stats[stat];
+            const maxValue = maxValues[stat];
+            // Normalize the value (clamp between 0 and 1).
+            const proportion = Phaser.Math.Clamp(value / maxValue, 0, 1);
+            const dataRadius = proportion * radius;
+            const angle = Phaser.Math.DegToRad((360 / numAxes) * i - 90);
+            const dx = x + dataRadius * Math.cos(angle);
+            const dy = y + dataRadius * Math.sin(angle);
+            dataPoints.push(new Phaser.Math.Vector2(dx, dy));
+        }
+
+        // Fill the data polygon.
+        graphics.fillStyle(0xff0000, 0.5);
+        graphics.fillPoints(dataPoints, true);
+        // Outline the data polygon.
+        graphics.lineStyle(2, 0xff0000, 1);
+        graphics.strokePoints(dataPoints, true);
+
+        // Create and store labels for each axis.
+        this.radarLabels = [];
+        for (let i = 0; i < numAxes; i++) {
+            const stat = axes[i];
+            const angle = Phaser.Math.DegToRad((360 / numAxes) * i - 90);
+            const labelX = x + (radius + 20) * Math.cos(angle);
+            const labelY = y + (radius + 20) * Math.sin(angle);
+            let label = this.scene.add.text(labelX, labelY, 
+                stat.charAt(0).toUpperCase() + stat.slice(1), 
+                { fontSize: '12px', fill: '#ffffff' }
+            ).setOrigin(0.5);
+            // Initially hide the label.
+            label.visible = false;
+            this.radarLabels.push(label);
+        }
+
+        // Store the graphics object so that we can toggle its visibility later.
+        this.radarChart = graphics;
+    }
+
+    // Display numerical values for each stat next to the radar chart.
+    displayStatValues(x, y, stats) {
+        const statNames = Object.keys(stats);
+        const spacing = 20; // Vertical spacing between each stat
+
+        this.statTexts = statNames.map((stat, index) => {
+            const statValue = stats[stat];
+            const text = this.scene.add.text(x, y + index * spacing, `${stat.charAt(0).toUpperCase() + stat.slice(1)}: ${statValue}`, {
+                fontSize: '14px',
+                fill: '#ffffff'
+            }).setOrigin(0, 0.5);
+            text.visible = false; // Initially hide the text
+            return text;
+        });
     }
 }
