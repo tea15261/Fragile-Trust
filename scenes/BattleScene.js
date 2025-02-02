@@ -22,6 +22,9 @@ export default class BattleScene extends Phaser.Scene {
         const playerY = 230; 
         this.playerManager.player.setPosition(playerX, playerY);
 
+        this.customCursor = this.add.sprite(0, 0, 'customCursor');
+        this.customCursor.setVisible(false);
+
         // Scene change collision box.
         this.sceneChangeBox = this.physics.add.staticGroup();
         this.sceneChangeBox.create(640, 200, null)
