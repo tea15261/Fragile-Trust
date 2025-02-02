@@ -50,7 +50,7 @@ export default class BattleScene extends Phaser.Scene {
         // Position the monster a bit left from the center.
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
-        this.monsterManager.monster.setPosition( centerX - 50, centerY );
+        this.monsterManager.monster.setPosition(centerX - 50, centerY);
 
         // Prevent the battle UI from being created more than once.
         this.battleUIShown = false;
@@ -133,53 +133,90 @@ export default class BattleScene extends Phaser.Scene {
         this.uiBoxes = [];
     
         for (let i = 0; i < 4; i++) {
+            // Create a container starting offscreen at the bottom.
             const container = this.add.container(finalPositions[i].x, screenHeight + boxHeight);
+    
+            // Create a graphics object for the box background and border.
             const graphics = this.add.graphics();
-            
-            // Draw initial box
             graphics.fillStyle(0x000000, 0.8);
             graphics.fillRect(0, 0, boxWidth, boxHeight);
             graphics.lineStyle(2, 0xffffff, 1);
             graphics.strokeRect(0, 0, boxWidth, boxHeight);
-            
-            const text = this.add.text(boxWidth/2, boxHeight/2, optionLabels[i], 
-                { font: "18px Arial", fill: "#ffffff" })
-                .setOrigin(0.5);
     
+            // Create the label text.
+            const text = this.add.text(boxWidth / 2, boxHeight / 2, optionLabels[i], {
+                font: "18px Arial",
+                fill: "#ffffff"
+            }).setOrigin(0.5);
+    
+            // Add graphics and text to the container.
             container.add([graphics, text]);
-            container.graphics = graphics; // Store reference for hover effects
+            container.graphics = graphics; // Save a reference for later updates
     
-            // Make interactive
-            container.setInteractive(new Phaser.Geom.Rectangle(0, 0, boxWidth, boxHeight), 
-                Phaser.Geom.Rectangle.Contains);
+            // Make the container interactive.
+            container.setInteractive(new Phaser.Geom.Rectangle(0, 0, boxWidth, boxHeight), Phaser.Geom.Rectangle.Contains);
     
-            // Add event listeners
-            container.on('pointerover', () => {
-                this.customCursor.setTexture('openCursor');
-                container.graphics.lineStyle(2, 0xff0000, 1); // Red border on hover
+            // Pointer event handlers to create a pop-out effect and change the cursor texture.
+            container.on("pointerover", () => {
+                // Set cursor to openCursor on hover.
+                this.customCursor.setTexture("openCursor");
+    
+                // Tween the scale to make it larger (pop out).
+                this.tweens.add({
+                    targets: container,
+                    scale: 1.1,
+                    duration: 150,
+                    ease: "Power1"
+                });
+                // Bring it to the front by increasing its depth.
+                container.setDepth(10);
+    
+                // Redraw the box border in a different color to emphasize hover.
+                container.graphics.clear();
+                container.graphics.fillStyle(0x000000, 0.8);
+                container.graphics.fillRect(0, 0, boxWidth, boxHeight);
+                container.graphics.lineStyle(2, 0xff0000, 1); // Red border
                 container.graphics.strokeRect(0, 0, boxWidth, boxHeight);
             });
     
-            container.on('pointerout', () => {
-                this.customCursor.setTexture('customCursor');
-                container.graphics.lineStyle(2, 0xffffff, 1); // White border normal
+            container.on("pointerout", () => {
+                // Revert cursor texture when leaving the box.
+                this.customCursor.setTexture("customCursor");
+    
+                // Tween back to the original scale.
+                this.tweens.add({
+                    targets: container,
+                    scale: 1,
+                    duration: 150,
+                    ease: "Power1"
+                });
+                // Reset depth.
+                container.setDepth(0);
+    
+                // Redraw the box border in its default style.
+                container.graphics.clear();
+                container.graphics.fillStyle(0x000000, 0.8);
+                container.graphics.fillRect(0, 0, boxWidth, boxHeight);
+                container.graphics.lineStyle(2, 0xffffff, 1); // White border
                 container.graphics.strokeRect(0, 0, boxWidth, boxHeight);
             });
     
-            container.on('pointerdown', () => {
-                this.customCursor.setTexture('customCursor');
-                // Handle button click actions here
-                console.log('Clicked:', optionLabels[i]);
+            container.on("pointerdown", () => {
+                // Set the cursor texture to closedCursor on click/press.
+                this.customCursor.setTexture("closedCursor");
+                console.log("Clicked:", optionLabels[i]);
+                // You can add more button click actions here.
             });
     
-            container.on('pointerup', () => {
-                this.customCursor.setTexture('openCursor');
+            container.on("pointerup", () => {
+                // Return to openCursor if still hovering.
+                this.customCursor.setTexture("openCursor");
             });
     
             this.uiBoxes.push(container);
         }
     
-        // Animate boxes into view
+        // Animate the boxes into view from the bottom.
         this.uiBoxes.forEach((container, index) => {
             this.tweens.add({
                 targets: container,
@@ -190,5 +227,4 @@ export default class BattleScene extends Phaser.Scene {
             });
         });
     }
-    
 }
