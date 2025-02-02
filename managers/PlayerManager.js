@@ -1,3 +1,4 @@
+
 export default class PlayerManager {
     constructor(scene, inBattle = false) {
         // Player Manager Stats
@@ -12,13 +13,9 @@ export default class PlayerManager {
         this.keyToggleReady = true;
         this.keyE = null;
         this.customCursor = null;
-        // To hold our radar chart graphics object.
         this.radarChart = null;
-        // To hold our radar chart label text objects.
         this.radarLabels = [];
-        this.statTexts = []; // Array to hold text objects for stats
-
-        // Added: Reference to our new inventory button.
+        this.statTexts = [];
         this.inventoryButton = null;
 
         // Player Stats
@@ -346,8 +343,6 @@ export default class PlayerManager {
         }
     }
 
-    
-
     // ----------------------------------------------------------------------
     // SKILL TREE PAGE SETUP
     // ----------------------------------------------------------------------
@@ -654,7 +649,6 @@ export default class PlayerManager {
         this.scene.physics.resume();
         this.scene.anims.resumeAll();
     }
-    
 
     // ---------------------------------------------------------
     // Draws a radar (spider) chart with 6 axes: Health, Defense, Attack, Speed, Luck, Agility.
