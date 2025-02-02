@@ -28,7 +28,8 @@ export default class PlayerManager {
             attack: 75, // Attack Power
             speed: 160, // Move Speed
             luck: 40, // Critical Hit
-            agility: 80 // Dodge Chance
+            agility: 80, // Dodge Chance
+            mana: 80 // Magic Power
         };
         this.init();
     }
@@ -347,18 +348,18 @@ export default class PlayerManager {
 
     
 
-// ----------------------------------------------------------------------
-// SKILL TREE PAGE SETUP
-// ----------------------------------------------------------------------
-showSkillTree() {
-    // Hide the inventory and its button, as well as the radar and stat texts.
-    this.inventoryContainer.setVisible(false);
-    if (this.radarChart) this.radarChart.visible = false;
-    this.radarLabels.forEach(label => label.setVisible(false));
-    this.statTexts.forEach(text => text.setVisible(false));
-    this.inventoryButton.visible = false;
+    // ----------------------------------------------------------------------
+    // SKILL TREE PAGE SETUP
+    // ----------------------------------------------------------------------
+    showSkillTree() {
+        // Hide the inventory and its button, as well as the radar and stat texts.
+        this.inventoryContainer.setVisible(false);
+        if (this.radarChart) this.radarChart.visible = false;
+        this.radarLabels.forEach(label => label.setVisible(false));
+        this.statTexts.forEach(text => text.setVisible(false));
+        this.inventoryButton.visible = false;
 
-    // Create or show skill tree container
+        // Create or show skill tree container
     if (!this.skillTreeContainer) {
         this.skillTreeContainer = this.scene.add.container(0, 0);
         const centerX = this.scene.cameras.main.width / 2;
@@ -399,32 +400,36 @@ showSkillTree() {
         };
 
         // Offensive (Top triangle)
-        createTriangle(0xff0000, [
+        const offensiveTriangle = createTriangle(0xff0000, [
             { x: 0, y: 0 },
             { x: this.scene.cameras.main.width, y: 0 },
             { x: centerX, y: centerY }
         ]);
+        this.skillTreeContainer.add(offensiveTriangle);
 
         // Defensive (Bottom triangle)
-        createTriangle(0x8B4513, [
+        const defensiveTriangle = createTriangle(0x8B4513, [
             { x: 0, y: this.scene.cameras.main.height },
             { x: this.scene.cameras.main.width, y: this.scene.cameras.main.height },
             { x: centerX, y: centerY }
         ]);
+        this.skillTreeContainer.add(defensiveTriangle);
 
         // Magic (Right triangle)
-        createTriangle(0x800080, [
+        const magicTriangle = createTriangle(0x800080, [
             { x: this.scene.cameras.main.width, y: 0 },
             { x: this.scene.cameras.main.width, y: this.scene.cameras.main.height },
             { x: centerX, y: centerY }
         ]);
+        this.skillTreeContainer.add(magicTriangle);
 
         // Utility (Left triangle)
-        createTriangle(0x0000ff, [
+        const utilityTriangle = createTriangle(0x0000ff, [
             { x: 0, y: 0 },
             { x: 0, y: this.scene.cameras.main.height },
             { x: centerX, y: centerY }
         ]);
+        this.skillTreeContainer.add(utilityTriangle);
 
         // Add labels
         const labelStyle = { fontSize: '24px', fill: '#ffffff', fontStyle: 'bold' };
@@ -444,47 +449,48 @@ showSkillTree() {
         this.skillTreeContainer.add(this.skillTreeButton);
     }
 
-    this.skillTreeContainer.setVisible(true);
-}
+        // Show the container (all children will become visible)
+        this.skillTreeContainer.setVisible(true);
+    }
 
-createNavButton(x, y, flip = false) {
-    const button = this.scene.add.graphics({ x: x, y: y });
-    const trapezoidPoints = flip ? [
-        { x: 0, y: -150 }, { x: 0, y: 150 },
-        { x: -20, y: 130 }, { x: -20, y: -130 }
-    ] : [
-        { x: 0, y: -150 }, { x: 0, y: 150 },
-        { x: 20, y: 130 }, { x: 20, y: -130 }
-    ];
+        createNavButton(x, y, flip = false) {
+            const button = this.scene.add.graphics({ x: x, y: y });
+            const trapezoidPoints = flip ? [
+                { x: 0, y: -150 }, { x: 0, y: 150 },
+                { x: -20, y: 130 }, { x: -20, y: -130 }
+            ] : [
+                { x: 0, y: -150 }, { x: 0, y: 150 },
+                { x: 20, y: 130 }, { x: 20, y: -130 }
+            ];
 
-    // Button base
-    button.fillStyle(0x808080, 1);
-    button.beginPath();
-    button.moveTo(trapezoidPoints[0].x, trapezoidPoints[0].y);
-    trapezoidPoints.forEach(p => button.lineTo(p.x, p.y));
-    button.closePath().fillPath();
+            // Button base
+            button.fillStyle(0x808080, 1);
+            button.beginPath();
+            button.moveTo(trapezoidPoints[0].x, trapezoidPoints[0].y);
+            trapezoidPoints.forEach(p => button.lineTo(p.x, p.y));
+            button.closePath().fillPath();
 
-    // Arrow
-    const arrowPoints = flip ? [
-        { x: -18, y: 0 }, { x: -8, y: -10 }, { x: -8, y: 10 }
-    ] : [
-        { x: 18, y: 0 }, { x: 8, y: -10 }, { x: 8, y: 10 }
-    ];
-    
-    button.fillStyle(0x606060, 1);
-    button.beginPath();
-    button.moveTo(arrowPoints[0].x, arrowPoints[0].y);
-    arrowPoints.forEach(p => button.lineTo(p.x, p.y));
-    button.closePath().fillPath();
+            // Arrow
+            const arrowPoints = flip ? [
+                { x: -18, y: 0 }, { x: -8, y: -10 }, { x: -8, y: 10 }
+            ] : [
+                { x: 18, y: 0 }, { x: 8, y: -10 }, { x: 8, y: 10 }
+            ];
+            
+            button.fillStyle(0x606060, 1);
+            button.beginPath();
+            button.moveTo(arrowPoints[0].x, arrowPoints[0].y);
+            arrowPoints.forEach(p => button.lineTo(p.x, p.y));
+            button.closePath().fillPath();
 
-    // Interactivity
-    button.setInteractive(new Phaser.Geom.Polygon(trapezoidPoints), Phaser.Geom.Polygon.Contains);
-    button.on('pointerover', () => button.fillStyle(0x909090, 1));
-    button.on('pointerout', () => button.fillStyle(0x808080, 1));
-    button.on('pointerdown', () => this.hideSkillTree());
+            // Interactivity
+            button.setInteractive(new Phaser.Geom.Polygon(trapezoidPoints), Phaser.Geom.Polygon.Contains);
+            button.on('pointerover', () => button.fillStyle(0x909090, 1));
+            button.on('pointerout', () => button.fillStyle(0x808080, 1));
+            button.on('pointerdown', () => this.hideSkillTree());
 
-    return button;
-}
+            return button;
+        }
 
         hideSkillTree() {
             // Hide the skill tree container.
@@ -656,25 +662,26 @@ createNavButton(x, y, flip = false) {
     // (e.g. {health:100, defense:50, attack:75, speed:60, luck:40, agility:80})
     // (x, y) specify the center of the chart and 'radius' determines its size.
     drawRadarChart(x, y, radius, stats) {
-        // Define the axes in order.
-        const axes = ["health", "defense", "attack", "speed", "luck", "agility"];
+        // Define the axes in order (now a 7-sided polygon).
+        const axes = ["health", "defense", "attack", "speed", "luck", "agility", "mana"];
         const numAxes = axes.length;
-
+    
         // Define maximum values for normalization (adjust these values as needed).
         const maxValues = {
             health: 500,
             defense: 250,
             attack: 250,
             speed: 420,
-            luck: 250,
-            agility: 250
+            luck: 160,
+            agility: 250,
+            mana: 250
         };
-
+    
         // Create a Graphics object for drawing.
         const graphics = this.scene.add.graphics();
         // Initially hide the radar chart.
         graphics.visible = false;
-
+    
         // Draw concentric polygons for the grid.
         graphics.lineStyle(1, 0xffffff, 0.5);
         const gridLevels = 5;
@@ -689,7 +696,7 @@ createNavButton(x, y, flip = false) {
             }
             graphics.strokePoints(points, true);
         }
-
+    
         // Draw the axis lines.
         for (let i = 0; i < numAxes; i++) {
             const angle = Phaser.Math.DegToRad((360 / numAxes) * i - 90);
@@ -697,7 +704,7 @@ createNavButton(x, y, flip = false) {
             const dy = y + radius * Math.sin(angle);
             graphics.lineBetween(x, y, dx, dy);
         }
-
+    
         // Create points for the data polygon.
         const dataPoints = [];
         for (let i = 0; i < numAxes; i++) {
@@ -712,14 +719,14 @@ createNavButton(x, y, flip = false) {
             const dy = y + dataRadius * Math.sin(angle);
             dataPoints.push(new Phaser.Math.Vector2(dx, dy));
         }
-
+    
         // Fill the data polygon.
         graphics.fillStyle(0xff0000, 0.5);
         graphics.fillPoints(dataPoints, true);
         // Outline the data polygon.
         graphics.lineStyle(2, 0xff0000, 1);
         graphics.strokePoints(dataPoints, true);
-
+    
         // Create and store labels for each axis.
         this.radarLabels = [];
         for (let i = 0; i < numAxes; i++) {
@@ -727,32 +734,37 @@ createNavButton(x, y, flip = false) {
             const angle = Phaser.Math.DegToRad((360 / numAxes) * i - 90);
             const labelX = x + (radius + 20) * Math.cos(angle);
             const labelY = y + (radius + 20) * Math.sin(angle);
-            let label = this.scene.add.text(labelX, labelY, 
-                stat.charAt(0).toUpperCase() + stat.slice(1), 
+            let label = this.scene.add.text(
+                labelX,
+                labelY,
+                stat.charAt(0).toUpperCase() + stat.slice(1),
                 { fontSize: '12px', fill: '#ffffff' }
             ).setOrigin(0.5);
             // Initially hide the label.
             label.visible = false;
             this.radarLabels.push(label);
         }
-
+    
         // Store the graphics object so that we can toggle its visibility later.
         this.radarChart = graphics;
     }
-
-    // Display numerical values for each stat next to the radar chart.
+    
     displayStatValues(x, y, stats) {
-        const statNames = Object.keys(stats);
+        // Use the same axes order for consistency.
+        const axes = ["health", "defense", "attack", "speed", "luck", "agility", "mana"];
         const spacing = 20; // Vertical spacing between each stat
-
-        this.statTexts = statNames.map((stat, index) => {
+    
+        this.statTexts = axes.map((stat, index) => {
             const statValue = stats[stat];
-            const text = this.scene.add.text(x, y + index * spacing, `${stat.charAt(0).toUpperCase() + stat.slice(1)}: ${statValue}`, {
-                fontSize: '14px',
-                fill: '#ffffff'
-            }).setOrigin(0, 0.5);
-            text.visible = false; // Initially hide the text
+            const text = this.scene.add.text(
+                x,
+                y + index * spacing,
+                `${stat.charAt(0).toUpperCase() + stat.slice(1)}: ${statValue}`,
+                { fontSize: '14px', fill: '#ffffff' }
+            ).setOrigin(0, 0.5);
+            text.visible = false; // Initially hide the text.
             return text;
         });
     }
+    
 }
