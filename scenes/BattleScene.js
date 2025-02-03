@@ -24,7 +24,7 @@ export default class BattleScene extends Phaser.Scene {
         this.playerManager.player.setPosition(playerX, playerY);
         this.battleManager = new BattleManager(this, this.playerManager, this.monsterManager, this.customCursor);
 
-        this.customCursor = this.add.sprite(0, 0, 'customCursor');
+        this.customCursor = this.add.sprite(0, 0, 'customCursor').setScale(0.6);
         this.customCursor.setVisible(false);
 
         // Scene change collision box.
@@ -61,9 +61,6 @@ export default class BattleScene extends Phaser.Scene {
 
         // Prevent the battle UI from being created more than once.
         this.battleUIShown = false;
-
-        // Initialize custom cursor
-        this.initializeCustomCursor();
     }
 
     update() {
@@ -98,20 +95,5 @@ export default class BattleScene extends Phaser.Scene {
         this.physics.add.collider(this.playerManager.player, this.obstacles);
     }
 
-    initializeCustomCursor() {
-        // Create custom cursor if not already existing
-        if (!this.customCursor) {
-            this.customCursor = this.add.sprite(0, 0, 'customCursor')
-                .setVisible(false)
-                .setDepth(9999);
-            
-            this.input.on('pointermove', (pointer) => {
-                this.customCursor.setVisible(true)
-                    .setPosition(pointer.x, pointer.y);
-            });
-        } else {
-            // Reset texture to default state
-            this.customCursor.setTexture('customCursor');
-        }
-    }
+    
 }
