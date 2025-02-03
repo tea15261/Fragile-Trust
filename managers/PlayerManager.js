@@ -317,6 +317,7 @@ export default class PlayerManager {
     toggleInventory() {
         this.inventoryVisible = !this.inventoryVisible;
         this.inventoryContainer.setVisible(this.inventoryVisible);
+        this.inventoryContainer.setDepth(5);
         
         // Toggle the radar chart and its labels visibility in sync with the inventory.
         if (this.radarChart) {
@@ -508,8 +509,6 @@ export default class PlayerManager {
             }
         }
 
-    
-    
         update() {
             const speed = this.stats.speed;
 
