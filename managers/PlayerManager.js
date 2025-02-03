@@ -70,7 +70,6 @@ export default class PlayerManager {
         }
     }
     
-    // Player animations.
     createAnimations() {
         this.scene.anims.create({
             key: 'idle',
@@ -101,7 +100,6 @@ export default class PlayerManager {
         });
     }
 
-    // Inventory logic.
     initInventory() {
         const inventoryCols = 5;
         const inventoryRows = 3;
@@ -344,9 +342,6 @@ export default class PlayerManager {
         }
     }
 
-    // ----------------------------------------------------------------------
-    // SKILL TREE PAGE SETUP
-    // ----------------------------------------------------------------------
     showSkillTree() {
         // Hide the inventory and its button, as well as the radar and stat texts.
         this.inventoryContainer.setVisible(false);
@@ -449,7 +444,7 @@ export default class PlayerManager {
         this.skillTreeContainer.setVisible(true);
     }
 
-        createNavButton(x, y, flip = false) {
+    createNavButton(x, y, flip = false) {
             const button = this.scene.add.graphics({ x: x, y: y });
             const trapezoidPoints = flip ? [
                 { x: 0, y: -150 }, { x: 0, y: 150 },
@@ -486,9 +481,9 @@ export default class PlayerManager {
             button.on('pointerdown', () => this.hideSkillTree());
 
             return button;
-        }
+    }
 
-        hideSkillTree() {
+    hideSkillTree() {
             // Hide the skill tree container.
             if (this.skillTreeContainer) {
                 this.skillTreeContainer.visible = false;
@@ -507,9 +502,9 @@ export default class PlayerManager {
             if (this.statTexts) {
                 this.statTexts.forEach(text => text.setVisible(true));
             }
-        }
+    }
 
-        update() {
+    update() {
             const speed = this.stats.speed;
 
             this.customCursor.x = this.scene.input.x;
@@ -649,11 +644,6 @@ export default class PlayerManager {
         this.scene.anims.resumeAll();
     }
 
-    // ---------------------------------------------------------
-    // Draws a radar (spider) chart with 6 axes: Health, Defense, Attack, Speed, Luck, Agility.
-    // stats: an object containing the current stat values.
-    // (e.g. {health:100, defense:50, attack:75, speed:60, luck:40, agility:80})
-    // (x, y) specify the center of the chart and 'radius' determines its size.
     drawRadarChart(x, y, radius, stats) {
         // Define the axes in order (now a 7-sided polygon).
         const axes = ["health", "defense", "attack", "speed", "luck", "agility", "mana"];
