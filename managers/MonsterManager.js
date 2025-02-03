@@ -36,7 +36,6 @@ export default class MonsterManager {
 
     init() {
         this.generateNewMonster();
-        this.initStats();
     }
 
     generateNewMonster() {
@@ -63,74 +62,37 @@ export default class MonsterManager {
         }
 
         this.shadow = this.scene.add.ellipse(posX, posY + 8, 30, 10, 0x000000, 0.5);
-        this.shadow.setOrigin(0.5, 1.5);
+        this.shadow.setOrigin(-2.0, -7.5);
 
         // Create a colored square instead of a sprite
         this.monster = this.scene.add.rectangle(posX, posY, 50, 50, color);
         this.monster.setOrigin(0.5, 0.5);
     }
 
-    initStats() {
-        const barSpacing = 20;
-        const statsX = this.scene.cameras.main.width - 140;
-        const statsY = 140;
-
-        this.healthBar = this.createStatBar(statsX, statsY, 100, 10, 0xff0000, 'Health');
-        this.defenseBar = this.createStatBar(statsX, statsY + barSpacing, 100, 10, 0xa0522d, 'Defense');
-        this.attackBar = this.createStatBar(statsX, statsY + 2 * barSpacing, 100, 10, 0xffff00, 'Attack');
-
-        this.setStatBarsVisibility(false);
+    stats() {
+        return {
+            health: this.health,
+            attack: this.attack,
+            defense: this.defense
+        };
     }
 
-    createStatBar(x, y, width, height, color, label) {
-        const bar = this.scene.add.rectangle(x, y, width, height, color).setOrigin(0.5, 0.5);
-        const border = this.scene.add.rectangle(x, y, width + 2, height + 2)
-            .setStrokeStyle(2, 0xffffff)
-            .setOrigin(0.5, 0.5);
-        const text = this.scene.add.text(x - width/2 - 10, y - height/2, label, { 
-            fontSize: '12px', 
-            color: '#ffffff' 
-        }).setOrigin(0, 0.5).setStroke('#000000', 1.5);
-
-        return { bar, border, text };
-    }
-
-    setStatBarsVisibility(visible) {
-        [this.healthBar, this.defenseBar, this.attackBar].forEach(bar => {
-            bar.bar.setVisible(visible);
-            bar.border.setVisible(visible);
-            bar.text.setVisible(visible);
-        });
-    }
-
-    updateStatBars() {
-        this.healthBar.bar.width = this.health;
-        this.defenseBar.bar.width = this.defense;
-        this.attackBar.bar.width = this.attack;
-    }
-
-    takeDamage(damage) {
-        const effectiveDamage = Math.max(0, damage - this.defense);
-        this.health = Math.max(0, this.health - effectiveDamage);
-        this.updateStatBars();
-        return effectiveDamage;
+    name() {
+        return this.currentMonsterType;
     }
 
     hide() {
         this.monster.setVisible(false);
         this.shadow.setVisible(false);
-        this.setStatBarsVisibility(false);
     }
 
     show() {
         this.monster.setVisible(true);
         this.shadow.setVisible(true);
-        this.setStatBarsVisibility(true);
     }
 
     reset() {
         this.generateNewMonster();
-        this.updateStatBars();
         this.show();
     }
 }
