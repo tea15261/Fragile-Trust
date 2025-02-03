@@ -30,9 +30,13 @@ export default class BattleManager {
         if (!this.customCursor) {
             this.customCursor = this.scene.add.sprite(0, 0, 'customCursor')
                 .setVisible(false)
-                .setDepth(9999);
+                .setDepth(9999)
+                .setScale(0.6); // Set initial scale here.
             this.scene.input.on('pointermove', (pointer) => {
-                this.customCursor.setVisible(true).setPosition(pointer.x, pointer.y);
+                this.customCursor
+                    .setVisible(true)
+                    .setPosition(pointer.x, pointer.y)
+                    .setScale(0.6); // Ensure the scale remains 0.6.
             });
         }
 
@@ -75,8 +79,8 @@ export default class BattleManager {
 
             // Pointer event handlers to create a pop-out effect and change cursor textures.
             container.on("pointerover", () => {
-                // On hover, set the cursor to openCursor.
-                this.customCursor.setTexture("openCursor");
+                // On hover, set the cursor to openCursor and enforce the scale.
+                this.customCursor.setTexture("openCursor").setScale(0.6);
 
                 // Tween scale up for a pop-out effect.
                 this.scene.tweens.add({
@@ -96,8 +100,8 @@ export default class BattleManager {
             });
 
             container.on("pointerout", () => {
-                // When the pointer leaves, revert the cursor.
-                this.customCursor.setTexture("customCursor");
+                // When the pointer leaves, revert the cursor and maintain scale.
+                this.customCursor.setTexture("customCursor").setScale(0.6);
 
                 // Tween back to the original scale.
                 this.scene.tweens.add({
@@ -117,15 +121,15 @@ export default class BattleManager {
             });
 
             container.on("pointerdown", () => {
-                // On pointer down, set the cursor to closedCursor.
-                this.customCursor.setTexture("closedCursor");
+                // On pointer down, set the cursor to closedCursor and enforce scale.
+                this.customCursor.setTexture("closedCursor").setScale(0.6);
                 console.log("Clicked:", optionLabels[i]);
                 // Future battle logic for the selected option goes here.
             });
 
             container.on("pointerup", () => {
                 // On pointer up, revert to the openCursor if still hovering.
-                this.customCursor.setTexture("openCursor");
+                this.customCursor.setTexture("openCursor").setScale(0.6);
             });
 
             this.uiBoxes.push(container);
@@ -217,9 +221,6 @@ export default class BattleManager {
             });
     
             this.monsterStatsPanel.add([bg, monsterNameText, monsterStatsText]);
-            //console.log("Monster Name:", this.monsterManager.name);
-            //console.log("Monster Stats:", this.monsterManager.stats);
-
     
             this.scene.tweens.add({
                 targets: this.monsterStatsPanel,
