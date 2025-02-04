@@ -1,11 +1,4 @@
-// BattleManager.js
 export default class BattleManager {
-    /**
-     * @param {Phaser.Scene} scene - The battle scene.
-     * @param {Object} playerManager - The player manager.
-     * @param {Object} monsterManager - The monster manager.
-     * @param {Phaser.GameObjects.Sprite} customCursor - The custom cursor sprite.
-     */
     constructor(scene, playerManager, monsterManager, customCursor) {
         this.scene = scene;
         this.playerManager = playerManager;
@@ -13,30 +6,24 @@ export default class BattleManager {
         this.customCursor = customCursor;
         this.uiBoxes = [];
         this.battleUIShown = false;
-
-        // Containers for the combatants’ stat panels.
         this.playerStatsPanel = null;
         this.monsterStatsPanel = null;
     }
 
-    /**
-     * Displays the battle UI if it isn’t already shown.
-     */
     displayBattleUI() {
         if (this.battleUIShown) return;
         this.battleUIShown = true;
 
-        // Ensure the custom cursor is valid.
         if (!this.customCursor) {
             this.customCursor = this.scene.add.sprite(0, 0, 'customCursor')
                 .setVisible(false)
                 .setDepth(9999)
-                .setScale(0.6); // Set initial scale here.
+                .setScale(0.6);
             this.scene.input.on('pointermove', (pointer) => {
                 this.customCursor
                     .setVisible(true)
                     .setPosition(pointer.x, pointer.y)
-                    .setScale(0.6); // Ensure the scale remains 0.6.
+                    .setScale(0.6); 
             });
         }
 
@@ -52,37 +39,28 @@ export default class BattleManager {
             { x: boxWidth, y: screenHeight - boxHeight }
         ];
 
-        // Create the UI boxes (each representing a battle option).
         for (let i = 0; i < 4; i++) {
-            // Start offscreen at the bottom.
             const container = this.scene.add.container(finalPositions[i].x, screenHeight + boxHeight);
 
-            // Create a graphics object for the background and border.
             const graphics = this.scene.add.graphics();
             graphics.fillStyle(0x000000, 0.8);
             graphics.fillRect(0, 0, boxWidth, boxHeight);
             graphics.lineStyle(2, 0xffffff, 1);
             graphics.strokeRect(0, 0, boxWidth, boxHeight);
 
-            // Create the label text.
             const text = this.scene.add.text(boxWidth / 2, boxHeight / 2, optionLabels[i], {
                 font: "18px Arial",
                 fill: "#ffffff"
             }).setOrigin(0.5);
 
-            // Add graphics and text to the container.
             container.add([graphics, text]);
-            container.graphics = graphics; // Save a reference for later redrawing
+            container.graphics = graphics;
 
-            // Make the container interactive.
             container.setInteractive(new Phaser.Geom.Rectangle(0, 0, boxWidth, boxHeight), Phaser.Geom.Rectangle.Contains);
 
-            // Pointer event handlers to create a pop-out effect and change cursor textures.
             container.on("pointerover", () => {
-                // On hover, set the cursor to openCursor and enforce the scale.
                 this.customCursor.setTexture("openCursor").setScale(0.6);
 
-                // Tween scale up for a pop-out effect.
                 this.scene.tweens.add({
                     targets: container,
                     scale: 1.1,
@@ -91,7 +69,6 @@ export default class BattleManager {
                 });
                 container.setDepth(10);
 
-                // Redraw the border in red.
                 container.graphics.clear();
                 container.graphics.fillStyle(0x000000, 0.8);
                 container.graphics.fillRect(0, 0, boxWidth, boxHeight);
@@ -100,10 +77,8 @@ export default class BattleManager {
             });
 
             container.on("pointerout", () => {
-                // When the pointer leaves, revert the cursor and maintain scale.
                 this.customCursor.setTexture("customCursor").setScale(0.6);
 
-                // Tween back to the original scale.
                 this.scene.tweens.add({
                     targets: container,
                     scale: 1,
@@ -112,7 +87,6 @@ export default class BattleManager {
                 });
                 container.setDepth(0);
 
-                // Redraw the border in its default (white) style.
                 container.graphics.clear();
                 container.graphics.fillStyle(0x000000, 0.8);
                 container.graphics.fillRect(0, 0, boxWidth, boxHeight);
@@ -121,21 +95,17 @@ export default class BattleManager {
             });
 
             container.on("pointerdown", () => {
-                // On pointer down, set the cursor to closedCursor and enforce scale.
                 this.customCursor.setTexture("closedCursor").setScale(0.6);
                 console.log("Clicked:", optionLabels[i]);
-                // Future battle logic for the selected option goes here.
             });
 
             container.on("pointerup", () => {
-                // On pointer up, revert to the openCursor if still hovering.
                 this.customCursor.setTexture("openCursor").setScale(0.6);
             });
 
             this.uiBoxes.push(container);
         }
 
-        // Animate the boxes into view from the bottom.
         this.uiBoxes.forEach((container, index) => {
             this.scene.tweens.add({
                 targets: container,
@@ -146,14 +116,7 @@ export default class BattleManager {
             });
         });
 
-        // Create and display the combatant stats panels.
         this.monsterManager.displayCombatantStats();
     }
 
-    /**
-     * Creates and animates the stat panels for the player and the monster.
-     */
-    
-
-    // (Additional battle logic methods can be added here later.)
 }
