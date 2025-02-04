@@ -1,31 +1,33 @@
+import PlayerManager from '/managers/PlayerManager.js';
 export default class MonsterManager {
-    constructor(scene) {
+    constructor(scene, playerManager) {
         this.scene = scene;
         this.monster = null;
         this.shadow = null;
         this.healthBar = null;
         this.defenseBar = null;
         this.attackBar = null;
+        this.playerManager = playerManager;
         
         // Define monster types with fixed stats and colors
         this.monsterTypes = [
             { 
-                key: 'slime',
+                key: 'Slime',
                 stats: { health: 50, attack: 30, defense: 20 },
                 color: 0x00ffff // Green
             },
             {
-                key: 'skeleton',
+                key: 'Skeleton',
                 stats: { health: 75, attack: 45, defense: 30 },
                 color: 0xffffff // White
             },
             {
-                key: 'goblin',
+                key: 'Goblin',
                 stats: { health: 100, attack: 60, defense: 40 },
                 color: 0x00ff00 // Cyan
             },
             {
-                key: 'mage',
+                key: 'Mage',
                 stats: { health: 125, attack: 75, defense: 50 },
                 color: 0xff00ff // Magenta
             }
@@ -36,6 +38,7 @@ export default class MonsterManager {
 
     init() {
         this.generateNewMonster();
+        this.name();
     }
 
     generateNewMonster() {
@@ -95,4 +98,92 @@ export default class MonsterManager {
         this.generateNewMonster();
         this.show();
     }
+
+    displayCombatantStats() {
+        // --- Player Stats Panel ---
+        if (!this.playerStatsPanel) {
+            const panelWidth = 200, panelHeight = 150;
+            const playerPanelX = this.scene.cameras.main.width - panelWidth - 20;
+            const playerPanelYStart = -panelHeight;
+            const playerPanelYTarget = 20;
+            this.playerStatsPanel = this.scene.add.container(playerPanelX, playerPanelYStart);
+    
+            const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x000000, 0.5);
+            bg.setOrigin(0, 0);
+    
+            const playerNameText = this.scene.add.text(10, 10, "Player", {
+                fontSize: "16px",
+                fill: "#ffffff"
+            });
+    
+            let statsStr = "";
+            // Player Stats
+            const stats = {
+                health: 100, // Health
+                defense: 50, // Defense
+                attack: 75, // Attack Power
+                speed: 160, // Move Speed
+                luck: 40, // Critical Hit
+                agility: 80, // Dodge Chance
+                mana: 80 // Magic Power
+           };
+            for (let key in stats) {
+                statsStr += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${stats[key]}\n`;
+            }
+            const playerStatsText = this.scene.add.text(10, 30, statsStr, {
+                fontSize: "14px",
+                fill: "#ffffff"
+            });
+    
+            this.playerStatsPanel.add([bg, playerNameText, playerStatsText]);
+    
+            this.scene.tweens.add({
+                targets: this.playerStatsPanel,
+                y: playerPanelYTarget,
+                duration: 500,
+                ease: "Power2"
+            });
+        }
+    
+        // --- Monster Stats Panel ---
+        if (!this.monsterStatsPanel) {
+            const panelWidth = 200, panelHeight = 150;
+            const monsterPanelX = 20;
+            const monsterPanelYStart = -panelHeight;
+            const monsterPanelYTarget = 20;
+            this.monsterStatsPanel = this.scene.add.container(monsterPanelX, monsterPanelYStart);
+    
+            const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x000000, 0.5);
+            bg.setOrigin(0, 0);
+    
+            // Use the current monster type as the name.
+            let name = this.name();
+            const monsterNameText = this.scene.add.text(10, 10, name, {
+                fontSize: "16px",
+                fill: "#ffffff"
+            });
+    
+            // Use the stats getter from MonsterManager.
+            const monsterStats = this.stats();
+
+            let statsStr = "";
+            for (let key in monsterStats) {
+                statsStr += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${monsterStats[key]}\n`;
+            }
+            const monsterStatsText = this.scene.add.text(10, 30, statsStr, {
+                fontSize: "14px",
+                fill: "#ffffff"
+            });
+    
+            this.monsterStatsPanel.add([bg, monsterNameText, monsterStatsText]);
+    
+            this.scene.tweens.add({
+                targets: this.monsterStatsPanel,
+                y: monsterPanelYTarget,
+                duration: 500,
+                ease: "Power2"
+            });
+        }
+    }
+
 }
