@@ -44,7 +44,7 @@ export default class BattleManager {
         const screenHeight = this.scene.cameras.main.height;
         const boxWidth = screenWidth / 2;
         const boxHeight = 75;
-        const optionLabels = ["Attack", "Skills", "Focus", "Run"];
+        const optionLabels = ["Attack", "Skills", "Guard", "Run"];
         const finalPositions = [
             { x: 0, y: screenHeight - 2 * boxHeight },
             { x: boxWidth, y: screenHeight - 2 * boxHeight },
@@ -147,89 +147,13 @@ export default class BattleManager {
         });
 
         // Create and display the combatant stats panels.
-        this.displayCombatantStats();
+        this.monsterManager.displayCombatantStats();
     }
 
     /**
      * Creates and animates the stat panels for the player and the monster.
      */
-    displayCombatantStats() {
-        // --- Player Stats Panel ---
-        if (!this.playerStatsPanel) {
-            const panelWidth = 200, panelHeight = 150;
-            const playerPanelX = this.scene.cameras.main.width - panelWidth - 20;
-            const playerPanelYStart = -panelHeight;
-            const playerPanelYTarget = 20;
-            this.playerStatsPanel = this.scene.add.container(playerPanelX, playerPanelYStart);
     
-            const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x000000, 0.5);
-            bg.setOrigin(0, 0);
-    
-            const playerNameText = this.scene.add.text(10, 10, "Player", {
-                fontSize: "16px",
-                fill: "#ffffff"
-            });
-    
-            let statsStr = "";
-            const stats = this.playerManager.stats;
-            for (let key in stats) {
-                statsStr += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${stats[key]}\n`;
-            }
-            const playerStatsText = this.scene.add.text(10, 30, statsStr, {
-                fontSize: "14px",
-                fill: "#ffffff"
-            });
-    
-            this.playerStatsPanel.add([bg, playerNameText, playerStatsText]);
-    
-            this.scene.tweens.add({
-                targets: this.playerStatsPanel,
-                y: playerPanelYTarget,
-                duration: 500,
-                ease: "Power2"
-            });
-        }
-    
-        // --- Monster Stats Panel ---
-        if (!this.monsterStatsPanel) {
-            const panelWidth = 200, panelHeight = 150;
-            const monsterPanelX = 20;
-            const monsterPanelYStart = -panelHeight;
-            const monsterPanelYTarget = 20;
-            this.monsterStatsPanel = this.scene.add.container(monsterPanelX, monsterPanelYStart);
-    
-            const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x000000, 0.5);
-            bg.setOrigin(0, 0);
-    
-            // Use the current monster type as the name.
-            const monsterNameText = this.scene.add.text(10, 10, "this.monsterManager.name", {
-                fontSize: "16px",
-                fill: "#ffffff"
-            });
-    
-            // Use the stats getter from MonsterManager.
-            const monsterStats = (this.monsterManager && this.monsterManager.stats) || 
-                     { health: 100, defense: 50, attack: 70, speed: 120, luck: 30, agility: 40, mana: 60 };
-
-            let statsStr = "";
-            for (let key in monsterStats) {
-                statsStr += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${monsterStats[key]}\n`;
-            }
-            const monsterStatsText = this.scene.add.text(10, 30, statsStr, {
-                fontSize: "14px",
-                fill: "#ffffff"
-            });
-    
-            this.monsterStatsPanel.add([bg, monsterNameText, monsterStatsText]);
-    
-            this.scene.tweens.add({
-                targets: this.monsterStatsPanel,
-                y: monsterPanelYTarget,
-                duration: 500,
-                ease: "Power2"
-            });
-        }
-    }
 
     // (Additional battle logic methods can be added here later.)
 }
