@@ -1,7 +1,7 @@
 import PlayerManager from '/managers/PlayerManager.js';
 import PreloadManager from '/managers/PreloadManager.js';
-import MonsterManager from '/managers/MonsterManager.js';
 import BattleManager from '/managers/BattleManager.js';
+import MonsterManager from '/managers/MonsterManager.js';
 
 export default class BattleScene extends Phaser.Scene {
     constructor() {
@@ -18,6 +18,14 @@ export default class BattleScene extends Phaser.Scene {
         this.playerManager = new PlayerManager(this, true); // true indicates the player is in battle
         this.cursors = this.input.keyboard.createCursorKeys();
         this.input.setDefaultCursor('none');
+
+        // Initialize MonsterManager.
+        this.monsterManager = new MonsterManager(this);
+        this.monsterManager.generateNewMonster();
+        // Position the monster a bit left from the center.
+        const centerX = this.cameras.main.width / 2;
+        const centerY = this.cameras.main.height / 2;
+        this.monsterManager.monster.setPosition(centerX - 50, centerY);
 
         const playerX = this.cameras.main.width - 50; 
         const playerY = 230; 
@@ -50,14 +58,6 @@ export default class BattleScene extends Phaser.Scene {
                 this.battleManager.displayBattleUI();
             }
         }, null, this);
-
-        // Initialize MonsterManager.
-        this.monsterManager = new MonsterManager(this);
-        this.monsterManager.generateNewMonster();
-        // Position the monster a bit left from the center.
-        const centerX = this.cameras.main.width / 2;
-        const centerY = this.cameras.main.height / 2;
-        this.monsterManager.monster.setPosition(centerX - 50, centerY);
 
         // Prevent the battle UI from being created more than once.
         this.battleUIShown = false;
@@ -97,3 +97,5 @@ export default class BattleScene extends Phaser.Scene {
 
     
 }
+
+
