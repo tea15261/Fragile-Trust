@@ -1,4 +1,5 @@
-
+// PlayerManager.js
+import { SkillManager, SkillTreeUI } from '/managers/SkillManager.js';
 export default class PlayerManager {
     constructor(scene, inBattle = false) {
         // Player Manager Stats
@@ -17,6 +18,14 @@ export default class PlayerManager {
         this.radarLabels = [];
         this.statTexts = [];
         this.inventoryButton = null;
+
+        this.skillManager = new SkillManager();
+        const savedSkills = localStorage.getItem('ownedSkills');
+        this.ownedSkills = savedSkills ? JSON.parse(savedSkills) : [];
+
+        this.spaceBar = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        // Create the "R" key.
+        this.resetKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 
         // Player Stats
         this.stats = {
@@ -64,43 +73,54 @@ export default class PlayerManager {
         this.initInventory();
 
         // Draw the radar chart and stat values.
-        if(!this.inBattle) {
+        if (!this.inBattle) {
             this.drawRadarChart(250, 85, 55, this.stats);
             this.displayStatValues(350, 35, this.stats); // Position the stat values to the right of the radar
         }
     }
+
     
-    createAnimations() {
-        this.scene.anims.create({
-            key: 'idle',
-            frames: this.scene.anims.generateFrameNumbers('playerIdle', { start: 0, end: 3 }),
-            frameRate: 10,
-            repeat: -1
-        });
 
-        this.scene.anims.create({
-            key: 'run',
-            frames: this.scene.anims.generateFrameNumbers('playerRun', { start: 0, end: 5 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        this.scene.anims.create({
-            key: 'handsIdle',
-            frames: this.scene.anims.generateFrameNumbers('handsIdle', { start: 0, end: 3 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        this.scene.anims.create({
-            key: 'handsRun',
-            frames: this.scene.anims.generateFrameNumbers('handsRun', { start: 0, end: 5 }),
-            frameRate: 10,
-            repeat: -1
-        });
+    showSkillTree() {
+        // Hide your other UI elements as needed.
+        if (!this.skillTreeUI) {
+            this.skillTreeUI = new SkillTreeUI(this.scene, this.skillManager, {
+                inventoryContainer: this.inventoryContainer,
+                inventoryButton: this.inventoryButton,
+                radarChart: this.radarChart,
+                radarLabels: this.radarLabels,
+                statTexts: this.statTexts,
+                playerManager: this  // Passing the current PlayerManager instance
+            });
+        }
+        this.skillTreeUI.showSkillTree();
+    }
+    
+    
+    hideSkillTree() {
+        if (this.skillTreeUI) {
+            this.skillTreeUI.hideSkillTree();
+        }
     }
 
-    initInventory() {
+      addOwnedSkill(skillKey) {
+        if (!this.ownedSkills.includes(skillKey)) {
+            this.ownedSkills.push(skillKey);
+            // Save the updated array to localStorage.
+            localStorage.setItem('ownedSkills', JSON.stringify(this.ownedSkills));
+            console.log("Owned Skills:", this.ownedSkills);
+        }
+    }
+
+      resetOwnedSkills() {
+        // Remove the owned skills entry from localStorage.
+        localStorage.removeItem('ownedSkills');
+        // Clear the ownedSkills array.
+        this.ownedSkills = [];
+        console.log("Owned Skills have been reset:", this.ownedSkills);
+    }
+
+      initInventory() {
         const inventoryCols = 5;
         const inventoryRows = 3;
         const cellSize = 40;
@@ -342,169 +362,20 @@ export default class PlayerManager {
         }
     }
 
-    showSkillTree() {
-        // Hide the inventory and its button, as well as the radar and stat texts.
-        this.inventoryContainer.setVisible(false);
-        if (this.radarChart) this.radarChart.visible = false;
-        this.radarLabels.forEach(label => label.setVisible(false));
-        this.statTexts.forEach(text => text.setVisible(false));
-        this.inventoryButton.visible = false;
-
-        // Create or show skill tree container
-    if (!this.skillTreeContainer) {
-        this.skillTreeContainer = this.scene.add.container(0, 0);
-        const centerX = this.scene.cameras.main.width / 2;
-        const centerY = this.scene.cameras.main.height / 2;
-        const gradientAlpha = 0.3;
-
-        // Background
-        const bg = this.scene.add.rectangle(
-            centerX, centerY,
-            this.scene.cameras.main.width,
-            this.scene.cameras.main.height,
-            0x000000, 0.7
-        );
-        this.skillTreeContainer.add(bg);
-
-        // Create X dividers
-        const graphics = this.scene.add.graphics();
-        graphics.lineStyle(2, 0xffffff, 0.5);
-        // Top-left to bottom-right
-        graphics.moveTo(0, 0);
-        graphics.lineTo(this.scene.cameras.main.width, this.scene.cameras.main.height);
-        // Top-right to bottom-left
-        graphics.moveTo(this.scene.cameras.main.width, 0);
-        graphics.lineTo(0, this.scene.cameras.main.height);
-        graphics.strokePath();
-        this.skillTreeContainer.add(graphics);
-
-        // Create category triangles with solid colors
-        const createTriangle = (color, points) => {
-            const triangle = this.scene.add.graphics();
-            triangle.fillStyle(color, gradientAlpha);
-            triangle.beginPath();
-            triangle.moveTo(points[0].x, points[0].y);
-            points.forEach(point => triangle.lineTo(point.x, point.y));
-            triangle.closePath();
-            triangle.fillPath();
-            return triangle;
-        };
-
-        // Offensive (Top triangle)
-        const offensiveTriangle = createTriangle(0xff0000, [
-            { x: 0, y: 0 },
-            { x: this.scene.cameras.main.width, y: 0 },
-            { x: centerX, y: centerY }
-        ]);
-        this.skillTreeContainer.add(offensiveTriangle);
-
-        // Defensive (Bottom triangle)
-        const defensiveTriangle = createTriangle(0x8B4513, [
-            { x: 0, y: this.scene.cameras.main.height },
-            { x: this.scene.cameras.main.width, y: this.scene.cameras.main.height },
-            { x: centerX, y: centerY }
-        ]);
-        this.skillTreeContainer.add(defensiveTriangle);
-
-        // Magic (Right triangle)
-        const magicTriangle = createTriangle(0x800080, [
-            { x: this.scene.cameras.main.width, y: 0 },
-            { x: this.scene.cameras.main.width, y: this.scene.cameras.main.height },
-            { x: centerX, y: centerY }
-        ]);
-        this.skillTreeContainer.add(magicTriangle);
-
-        // Utility (Left triangle)
-        const utilityTriangle = createTriangle(0x0000ff, [
-            { x: 0, y: 0 },
-            { x: 0, y: this.scene.cameras.main.height },
-            { x: centerX, y: centerY }
-        ]);
-        this.skillTreeContainer.add(utilityTriangle);
-
-        // Add labels
-        const labelStyle = { fontSize: '24px', fill: '#ffffff', fontStyle: 'bold' };
-        this.skillTreeContainer.add([
-            this.scene.add.text(centerX, 50, 'OFFENSIVE', labelStyle).setOrigin(0.5),
-            this.scene.add.text(centerX, this.scene.cameras.main.height - 50, 'DEFENSIVE', labelStyle).setOrigin(0.5),
-            this.scene.add.text(this.scene.cameras.main.width - 100, centerY, 'MAGIC', labelStyle).setOrigin(0.5),
-            this.scene.add.text(100, centerY, 'UTILITY', labelStyle).setOrigin(0.5)
-        ]);
-
-        // Add back button
-        this.skillTreeButton = this.createNavButton(
-            this.scene.cameras.main.width - 610, 
-            this.scene.cameras.main.height / 2,
-            true
-        );
-        this.skillTreeContainer.add(this.skillTreeButton);
-    }
-
-        // Show the container (all children will become visible)
-        this.skillTreeContainer.setVisible(true);
-    }
-
-    createNavButton(x, y, flip = false) {
-            const button = this.scene.add.graphics({ x: x, y: y });
-            const trapezoidPoints = flip ? [
-                { x: 0, y: -150 }, { x: 0, y: 150 },
-                { x: -20, y: 130 }, { x: -20, y: -130 }
-            ] : [
-                { x: 0, y: -150 }, { x: 0, y: 150 },
-                { x: 20, y: 130 }, { x: 20, y: -130 }
-            ];
-
-            // Button base
-            button.fillStyle(0x808080, 1);
-            button.beginPath();
-            button.moveTo(trapezoidPoints[0].x, trapezoidPoints[0].y);
-            trapezoidPoints.forEach(p => button.lineTo(p.x, p.y));
-            button.closePath().fillPath();
-
-            // Arrow
-            const arrowPoints = flip ? [
-                { x: -18, y: 0 }, { x: -8, y: -10 }, { x: -8, y: 10 }
-            ] : [
-                { x: 18, y: 0 }, { x: 8, y: -10 }, { x: 8, y: 10 }
-            ];
-            
-            button.fillStyle(0x606060, 1);
-            button.beginPath();
-            button.moveTo(arrowPoints[0].x, arrowPoints[0].y);
-            arrowPoints.forEach(p => button.lineTo(p.x, p.y));
-            button.closePath().fillPath();
-
-            // Interactivity
-            button.setInteractive(new Phaser.Geom.Polygon(trapezoidPoints), Phaser.Geom.Polygon.Contains);
-            button.on('pointerover', () => button.fillStyle(0x909090, 1));
-            button.on('pointerout', () => button.fillStyle(0x808080, 1));
-            button.on('pointerdown', () => this.hideSkillTree());
-
-            return button;
-    }
-
-    hideSkillTree() {
-            // Hide the skill tree container.
-            if (this.skillTreeContainer) {
-                this.skillTreeContainer.visible = false;
-            }
-            // Show the inventory container and its button.
-            this.inventoryContainer.setVisible(true);
-            this.inventoryButton.visible = true;
-            
-            // Also make the radar chart and its associated labels and stat texts visible.
-            if (this.radarChart) {
-                this.radarChart.visible = true;
-            }
-            if (this.radarLabels) {
-                this.radarLabels.forEach(label => label.setVisible(true));
-            }
-            if (this.statTexts) {
-                this.statTexts.forEach(text => text.setVisible(true));
-            }
-    }
-
     update() {
+        if (Phaser.Input.Keyboard.JustDown(this.spaceBar)) {
+            console.log("Player Stats:", this.stats);
+            console.log("Owned Skills:", this.ownedSkills);
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(this.resetKey)) {
+            this.resetOwnedSkills();
+        }
+
+        if (this.skillTreeUI && this.skillTreeUI.skillTreeContainer && this.skillTreeUI.skillTreeContainer.visible) {
+            this.skillTreeUI.update();
+          }
+
             const speed = this.stats.speed;
 
             this.customCursor.x = this.scene.input.x;
@@ -644,6 +515,36 @@ export default class PlayerManager {
         this.scene.anims.resumeAll();
     }
 
+    createAnimations() {
+        this.scene.anims.create({
+            key: 'idle',
+            frames: this.scene.anims.generateFrameNumbers('playerIdle', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.scene.anims.create({
+            key: 'run',
+            frames: this.scene.anims.generateFrameNumbers('playerRun', { start: 0, end: 5 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.scene.anims.create({
+            key: 'handsIdle',
+            frames: this.scene.anims.generateFrameNumbers('handsIdle', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.scene.anims.create({
+            key: 'handsRun',
+            frames: this.scene.anims.generateFrameNumbers('handsRun', { start: 0, end: 5 }),
+            frameRate: 10,
+            repeat: -1
+        });
+    }
+
     drawRadarChart(x, y, radius, stats) {
         // Define the axes in order (now a 7-sided polygon).
         const axes = ["health", "defense", "attack", "speed", "luck", "agility", "mana"];
@@ -659,13 +560,10 @@ export default class PlayerManager {
             agility: 250,
             mana: 250
         };
-    
-        // Create a Graphics object for drawing.
+
         const graphics = this.scene.add.graphics();
-        // Initially hide the radar chart.
         graphics.visible = false;
     
-        // Draw concentric polygons for the grid.
         graphics.lineStyle(1, 0xffffff, 0.5);
         const gridLevels = 5;
         for (let level = 1; level <= gridLevels; level++) {
@@ -680,7 +578,6 @@ export default class PlayerManager {
             graphics.strokePoints(points, true);
         }
     
-        // Draw the axis lines.
         for (let i = 0; i < numAxes; i++) {
             const angle = Phaser.Math.DegToRad((360 / numAxes) * i - 90);
             const dx = x + radius * Math.cos(angle);
@@ -688,13 +585,11 @@ export default class PlayerManager {
             graphics.lineBetween(x, y, dx, dy);
         }
     
-        // Create points for the data polygon.
         const dataPoints = [];
         for (let i = 0; i < numAxes; i++) {
             const stat = axes[i];
             const value = stats[stat];
             const maxValue = maxValues[stat];
-            // Normalize the value (clamp between 0 and 1).
             const proportion = Phaser.Math.Clamp(value / maxValue, 0, 1);
             const dataRadius = proportion * radius;
             const angle = Phaser.Math.DegToRad((360 / numAxes) * i - 90);
@@ -703,14 +598,11 @@ export default class PlayerManager {
             dataPoints.push(new Phaser.Math.Vector2(dx, dy));
         }
     
-        // Fill the data polygon.
         graphics.fillStyle(0xff0000, 0.5);
         graphics.fillPoints(dataPoints, true);
-        // Outline the data polygon.
         graphics.lineStyle(2, 0xff0000, 1);
         graphics.strokePoints(dataPoints, true);
     
-        // Create and store labels for each axis.
         this.radarLabels = [];
         for (let i = 0; i < numAxes; i++) {
             const stat = axes[i];
@@ -723,12 +615,10 @@ export default class PlayerManager {
                 stat.charAt(0).toUpperCase() + stat.slice(1),
                 { fontSize: '12px', fill: '#ffffff' }
             ).setOrigin(0.5);
-            // Initially hide the label.
             label.visible = false;
             this.radarLabels.push(label);
         }
     
-        // Store the graphics object so that we can toggle its visibility later.
         this.radarChart = graphics;
     }
     
