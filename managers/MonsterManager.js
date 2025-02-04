@@ -8,8 +8,7 @@ export default class MonsterManager {
         this.defenseBar = null;
         this.attackBar = null;
         this.playerManager = playerManager;
-        
-        // Define monster types with fixed stats and colors
+
         this.monsterTypes = [
             { 
                 key: 'Slime',
@@ -42,11 +41,9 @@ export default class MonsterManager {
     }
 
     generateNewMonster() {
-        // Randomly select a monster type
         const monsterType = Phaser.Math.RND.pick(this.monsterTypes);
         this.currentMonsterType = monsterType.key;
         
-        // Set stats from the selected type
         this.health = monsterType.stats.health;
         this.attack = monsterType.stats.attack;
         this.defense = monsterType.stats.defense;
@@ -55,10 +52,9 @@ export default class MonsterManager {
     }
 
     createMonster(color) {
-        const posX = 200; // Left side position
+        const posX = 200; 
         const posY = 100;
 
-        // Remove existing monster if present
         if(this.monster) {
             this.monster.destroy();
             this.shadow.destroy();
@@ -67,7 +63,7 @@ export default class MonsterManager {
         this.shadow = this.scene.add.ellipse(posX, posY + 8, 30, 10, 0x000000, 0.5);
         this.shadow.setOrigin(-2.0, -7.5);
 
-        // Create a colored square instead of a sprite
+        // create a colored square instead of a sprite
         this.monster = this.scene.add.rectangle(posX, posY, 50, 50, color);
         this.monster.setOrigin(0.5, 0.5);
     }
@@ -156,14 +152,12 @@ export default class MonsterManager {
             const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x000000, 0.5);
             bg.setOrigin(0, 0);
     
-            // Use the current monster type as the name.
             let name = this.name();
             const monsterNameText = this.scene.add.text(10, 10, name, {
                 fontSize: "16px",
                 fill: "#ffffff"
             });
     
-            // Use the stats getter from MonsterManager.
             const monsterStats = this.stats();
 
             let statsStr = "";
