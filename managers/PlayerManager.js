@@ -1,14 +1,11 @@
-// PlayerManager.js
 import { SkillManager, SkillTreeUI } from '/managers/SkillManager.js';
 export default class PlayerManager {
     constructor(scene, inBattle = false) {
-        // Player Manager Stats
         this.scene = scene;
         this.inBattle = inBattle;
         this.player = null;
         this.hands = null;
         this.shadow = null;
-        this.playerState = 'holdingNothing';
         this.inventoryVisible = false;
         this.inventoryContainer = null;
         this.keyToggleReady = true;
@@ -24,7 +21,6 @@ export default class PlayerManager {
         this.ownedSkills = savedSkills ? JSON.parse(savedSkills) : [];
 
         this.spaceBar = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-        // Create the "R" key.
         this.resetKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 
         // Player Stats
@@ -41,12 +37,10 @@ export default class PlayerManager {
     }
 
     init() {
-        // Create shadow, input, and sprites.
         this.shadow = this.scene.add.ellipse(400, 100, 30, 10, 0x000000, 0.5);
         this.shadow.setOrigin(0.5, 1.5);
         this.keyE = this.scene.input.keyboard.addKey('E');
 
-        // Create player sprite.
         this.player = this.scene.physics.add.sprite(450, 100, 'playerIdle');
         this.player.flipX = true;
         this.player.setCollideWorldBounds(true);
@@ -54,35 +48,28 @@ export default class PlayerManager {
         this.player.setSize(32, 32);
         this.player.setOffset(0, 0);
 
-        // Create custom cursor.
         this.customCursor = this.scene.add.sprite(0, 0, 'customCursor')
             .setOrigin(0.5, 0.5)
             .setScale(0.6);
         this.customCursor.setDepth(10);
 
-        // Create hands sprite.
         this.hands = this.scene.add.sprite(this.player.x, this.player.y, 'handsIdle');
         this.hands.setOrigin(0.5, 1);
         this.hands.visible = false;
 
-        // Create animations.
         this.createAnimations();
         this.player.anims.play('idle');
 
-        // Initialize inventory and stat bars.
         this.initInventory();
 
-        // Draw the radar chart and stat values.
+
         if (!this.inBattle) {
             this.drawRadarChart(250, 85, 55, this.stats);
-            this.displayStatValues(350, 35, this.stats); // Position the stat values to the right of the radar
+            this.displayStatValues(350, 35, this.stats);
         }
     }
 
-    
-
     showSkillTree() {
-        // Hide your other UI elements as needed.
         if (!this.skillTreeUI) {
             this.skillTreeUI = new SkillTreeUI(this.scene, this.skillManager, {
                 inventoryContainer: this.inventoryContainer,
@@ -90,7 +77,7 @@ export default class PlayerManager {
                 radarChart: this.radarChart,
                 radarLabels: this.radarLabels,
                 statTexts: this.statTexts,
-                playerManager: this  // Passing the current PlayerManager instance
+                playerManager: this 
             });
         }
         this.skillTreeUI.showSkillTree();
@@ -106,16 +93,13 @@ export default class PlayerManager {
       addOwnedSkill(skillKey) {
         if (!this.ownedSkills.includes(skillKey)) {
             this.ownedSkills.push(skillKey);
-            // Save the updated array to localStorage.
             localStorage.setItem('ownedSkills', JSON.stringify(this.ownedSkills));
             console.log("Owned Skills:", this.ownedSkills);
         }
     }
 
       resetOwnedSkills() {
-        // Remove the owned skills entry from localStorage.
         localStorage.removeItem('ownedSkills');
-        // Clear the ownedSkills array.
         this.ownedSkills = [];
         console.log("Owned Skills have been reset:", this.ownedSkills);
     }
@@ -186,25 +170,6 @@ export default class PlayerManager {
         hotbarSlot.setOrigin(0, 0);
         hotbarSlot.setStrokeStyle(2, 0xffff00);
     
-        if (this.playerState === 'holdingNothing') {
-            const fistsIcon = this.scene.add.sprite(
-                inventoryWidth / 2,
-                inventoryHeight + hotbarYOffset + cellSize / 2,
-                'fists'
-            );
-            fistsIcon.setOrigin(0.5, 0.5);
-            fistsIcon.setScale(0.8);
-            
-            console.log('Fists sprite created:', fistsIcon);
-            
-            if (fistsIcon) {
-                this.inventoryContainer.add(fistsIcon);
-                this.fistsIcon = fistsIcon;
-            } else {
-                console.error('Failed to create fists sprite');
-            }
-        }
-    
         hotbarSlot.setInteractive();
     
         hotbarSlot.on('pointerover', () => {
@@ -220,27 +185,12 @@ export default class PlayerManager {
         this.inventoryContainer.add([inventoryBg, hotbarSlot]);
         this.inventoryContainer.setVisible(false);
 
-        // ------------------------------
-        // Create the interactive inventory button.
-        // This button is drawn as a grey, sideways trapezoid (with a 300px-tall left side and a 260px-tall right side)
-        // that is 20px wide. The longer base (left side) is placed adjacent to the inventory, and the inner triangle
-        // (drawn in a darker grey) points to the right, away from the inventory.
-        // The button is positioned relative to the screen center.
-        // ------------------------------
-
-        // Calculate the inventory’s right edge.
         const inventoryRightEdge = centerX + inventoryWidth;
-        // Determine the button’s x position: 20 pixels to the right of the inventory’s right edge.
         const buttonX = inventoryRightEdge + 20;
-        // For vertical positioning, center the button on the screen.
         const buttonY = this.scene.cameras.main.height / 2;
 
-        // Create a Graphics object for the button.
         if(!this.inBattle) {
             this.inventoryButton = this.scene.add.graphics({ x: buttonX, y: buttonY });
-            // Define the points for the trapezoid in the button’s local coordinate space.
-        // The left vertical edge (x = 0) is 300px tall (from y = -150 to y = 150).
-        // The right vertical edge (x = 20) is 260px tall (from y = -130 to y = 130).
         const trapezoidPoints = [
             { x: 0,  y: -150 },   // left top (touching inventory)
             { x: 0,  y: 150 },    // left bottom
@@ -248,7 +198,6 @@ export default class PlayerManager {
             { x: 20, y: -130 }    // right top (shorter)
         ];
 
-        // Draw the trapezoid.
         this.inventoryButton.fillStyle(0x808080, 1);
         this.inventoryButton.beginPath();
         this.inventoryButton.moveTo(trapezoidPoints[0].x, trapezoidPoints[0].y);
@@ -258,15 +207,12 @@ export default class PlayerManager {
         this.inventoryButton.closePath();
         this.inventoryButton.fillPath();
     
-        // Define the inner triangle.
-        // (Revised so that its tip is at the far right.)
         const trianglePoints = [
-            { x: 18, y: 0 },   // tip at right side
+            { x: 18, y: 0 },   
             { x: 8,  y: -10 },
             { x: 8,  y: 10 }
         ];
     
-        // Draw the inner triangle.
         this.inventoryButton.fillStyle(0x606060, 1);
         this.inventoryButton.beginPath();
         this.inventoryButton.moveTo(trianglePoints[0].x, trianglePoints[0].y);
@@ -276,11 +222,9 @@ export default class PlayerManager {
         this.inventoryButton.closePath();
         this.inventoryButton.fillPath();
     
-        // Set interactive hit area using the trapezoid.
         const hitArea = new Phaser.Geom.Polygon(trapezoidPoints);
         this.inventoryButton.setInteractive(hitArea, Phaser.Geom.Polygon.Contains);
     
-        // Hover effects.
         this.inventoryButton.on('pointerover', () => {
             this.inventoryButton.clear();
             this.inventoryButton.fillStyle(0x909090, 1);
@@ -320,13 +264,10 @@ export default class PlayerManager {
             this.inventoryButton.fillPath();
         });
     
-        // IMPORTANT: Instead of toggling the inventory, clicking this button now
-        // shows the Skill Tree page.
         this.inventoryButton.on('pointerdown', () => {
             this.showSkillTree();
         });
     
-        // The inventory button should be visible while the inventory page is active.
         this.inventoryButton.visible = false;
         }
         
@@ -337,7 +278,6 @@ export default class PlayerManager {
         this.inventoryContainer.setVisible(this.inventoryVisible);
         this.inventoryContainer.setDepth(5);
         
-        // Toggle the radar chart and its labels visibility in sync with the inventory.
         if (this.radarChart) {
             this.radarChart.visible = this.inventoryVisible;
         }
@@ -348,7 +288,6 @@ export default class PlayerManager {
             this.statTexts.forEach(text => text.setVisible(this.inventoryVisible));
         }
 
-        // Also toggle the inventory button.
         if (this.inventoryButton) {
             this.inventoryButton.visible = this.inventoryVisible;
         }
@@ -384,14 +323,10 @@ export default class PlayerManager {
             this.player.setVelocityX(0);
             this.player.setVelocityY(0);
 
-            // Instead of directly toggling the inventory on keyE,
-            // check if any UI is open.
             if (this.keyE.isDown && this.keyToggleReady) {
                 if (this.inventoryVisible || (this.skillTreeContainer && this.skillTreeContainer.visible)) {
-                    // If any UI (inventory or skill tree) is visible, hide it.
                     this.hideUI();
                 } else {
-                    // If no UI is visible, open the inventory.
                     this.toggleInventory();
                 }
                 this.keyToggleReady = false;
@@ -489,7 +424,6 @@ export default class PlayerManager {
     }
 
     hideUI() {
-        // Hide inventory UI.
         if(!this.inBattle) {
             this.inventoryButton.visible = false;
         
@@ -510,7 +444,7 @@ export default class PlayerManager {
             }
     }
         this.inventoryContainer.setVisible(false);
-        this.inventoryVisible = false; // make sure our flag is updated
+        this.inventoryVisible = false;
         this.scene.physics.resume();
         this.scene.anims.resumeAll();
     }
@@ -546,11 +480,9 @@ export default class PlayerManager {
     }
 
     drawRadarChart(x, y, radius, stats) {
-        // Define the axes in order (now a 7-sided polygon).
         const axes = ["health", "defense", "attack", "speed", "luck", "agility", "mana"];
         const numAxes = axes.length;
     
-        // Define maximum values for normalization (adjust these values as needed).
         const maxValues = {
             health: 500,
             defense: 250,
