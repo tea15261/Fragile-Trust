@@ -623,9 +623,8 @@ export default class PlayerManager {
     }
     
     displayStatValues(x, y, stats) {
-        // Use the same axes order for consistency.
         const axes = ["health", "defense", "attack", "speed", "luck", "agility", "mana"];
-        const spacing = 20; // Vertical spacing between each stat
+        const spacing = 20;
     
         this.statTexts = axes.map((stat, index) => {
             const statValue = stats[stat];
@@ -635,7 +634,7 @@ export default class PlayerManager {
                 `${stat.charAt(0).toUpperCase() + stat.slice(1)}: ${statValue}`,
                 { fontSize: '14px', fill: '#ffffff' }
             ).setOrigin(0, 0.5);
-            text.visible = false; // Initially hide the text.
+            text.visible = false; 
             return text;
         });
     }
