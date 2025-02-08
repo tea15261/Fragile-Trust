@@ -20,7 +20,7 @@ export default class BattleScene extends Phaser.Scene {
         this.input.setDefaultCursor('none');
 
         // Initialize MonsterManager.
-        this.monsterManager = new MonsterManager(this);
+        this.monsterManager = new MonsterManager(this, this.playerManager);
         this.monsterManager.generateNewMonster();
         // Position the monster a bit left from the center.
         const centerX = this.cameras.main.width / 2;
@@ -82,7 +82,7 @@ export default class BattleScene extends Phaser.Scene {
             { x: 115, y: 180, width: 10, height: 400 },   // Left wall
             { x: 320, y: 330, width: 800, height: 10 },   // Bottom wall
         ];
-        
+        console.log(this.monsterManager.stats());
         this.obstacles = this.physics.add.staticGroup();
 
         obstacleConfigs.forEach(config => {
@@ -95,7 +95,6 @@ export default class BattleScene extends Phaser.Scene {
         this.physics.add.collider(this.playerManager.player, this.obstacles);
     }
 
-    
 }
 
 
