@@ -22,6 +22,7 @@ export default class PlayerManager {
 
         this.spaceBar = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         this.resetKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+        this.escKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESCAPE);
 
         // Player Stats
         this.stats = {
@@ -323,7 +324,7 @@ export default class PlayerManager {
             this.player.setVelocityX(0);
             this.player.setVelocityY(0);
 
-            if (this.keyE.isDown && this.keyToggleReady) {
+            if ((this.keyE.isDown) && this.keyToggleReady) {
                 if (this.inventoryVisible || (this.skillTreeContainer && this.skillTreeContainer.visible)) {
                     this.hideUI();
                 } else {
@@ -427,7 +428,6 @@ export default class PlayerManager {
         if(!this.inBattle) {
             this.inventoryButton.visible = false;
         
-            // Hide the radar chart and stat texts.
             if (this.radarChart) {
                 this.radarChart.visible = false;
             }
@@ -438,7 +438,6 @@ export default class PlayerManager {
                 this.statTexts.forEach(text => text.setVisible(false));
             }
             
-            // Hide skill tree UI if it exists.
             if (this.skillTreeContainer) {
                 this.skillTreeContainer.visible = false;
             }
