@@ -28,7 +28,7 @@ export default class BattleScene extends Phaser.Scene {
 
         const playerX = this.cameras.main.width - 50; 
         const playerY = 230; 
-        this.playerManager.player.setPosition(playerX, playerY);
+        this.playerManager.player.setPosition(playerX, centerY+20);
         this.battleManager = new BattleManager(this, this.playerManager, this.monsterManager, this.customCursor);
 
         this.customCursor = this.add.sprite(0, 0, 'customCursor').setScale(0.6);
@@ -45,7 +45,7 @@ export default class BattleScene extends Phaser.Scene {
 
         // battle start collision box.
         this.battleStart = this.physics.add.staticGroup();
-        this.battleStart.create(440, 200, null)
+        this.battleStart.create(350, 200, null)
             .setSize(10, 300)
             .setOrigin(0, 0)
             .setVisible(false);
@@ -75,6 +75,8 @@ export default class BattleScene extends Phaser.Scene {
     createObstacles() {
         const obstacleConfigs = [
             { x: 320, y: 80, width: 800, height: 10 },  // top wall
+            { x: 320, y: 182, width: 800, height: 10 },  // mid top wall
+            { x: 320, y: 222, width: 800, height: 10 },  // mid bottom wall
             { x: 115, y: 180, width: 10, height: 400 },   // left wall
             { x: 320, y: 330, width: 800, height: 10 },   // bottom wall
         ];
