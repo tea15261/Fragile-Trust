@@ -490,9 +490,13 @@ export default class PlayerManager {
             agility: 250,
             mana: 250
         };
-
+    
         const graphics = this.scene.add.graphics();
         graphics.visible = false;
+    
+        // Semi-transparent background
+        graphics.fillStyle(0x000000, 0.5);
+        graphics.fillCircle(x, y, radius + 10);
     
         graphics.lineStyle(1, 0xffffff, 0.5);
         const gridLevels = 5;
@@ -508,6 +512,7 @@ export default class PlayerManager {
             graphics.strokePoints(points, true);
         }
     
+        // Draw axis lines
         for (let i = 0; i < numAxes; i++) {
             const angle = Phaser.Math.DegToRad((360 / numAxes) * i - 90);
             const dx = x + radius * Math.cos(angle);
@@ -518,7 +523,7 @@ export default class PlayerManager {
         const dataPoints = [];
         for (let i = 0; i < numAxes; i++) {
             const stat = axes[i];
-            const value = stats[stat];
+            const value = stats[stat] !== undefined ? stats[stat] : 0;
             const maxValue = maxValues[stat];
             const proportion = Phaser.Math.Clamp(value / maxValue, 0, 1);
             const dataRadius = proportion * radius;
@@ -528,11 +533,13 @@ export default class PlayerManager {
             dataPoints.push(new Phaser.Math.Vector2(dx, dy));
         }
     
-        graphics.fillStyle(0xff0000, 0.5);
-        graphics.fillPoints(dataPoints, true);
+        // Radar shape
+        graphics.fillStyle(0xff0000, 0.3); // Reduced alpha for better visibility
+        graphics.fillPoints(dataPoints, true); // Properly closing shape
         graphics.lineStyle(2, 0xff0000, 1);
         graphics.strokePoints(dataPoints, true);
     
+        // Labels for each axis
         this.radarLabels = [];
         for (let i = 0; i < numAxes; i++) {
             const stat = axes[i];
@@ -543,7 +550,12 @@ export default class PlayerManager {
                 labelX,
                 labelY,
                 stat.charAt(0).toUpperCase() + stat.slice(1),
-                { fontSize: '12px', fill: '#ffffff' }
+                { 
+                    fontSize: '12px', 
+                    fill: '#ffffff', 
+                    fontFamily: 'Arial', 
+                    shadow: { offsetX: 2, offsetY: 2, color: '#000', blur: 2, stroke: true, fill: true } 
+                }
             ).setOrigin(0.5);
             label.visible = false;
             this.radarLabels.push(label);
@@ -554,19 +566,25 @@ export default class PlayerManager {
     
     displayStatValues(x, y, stats) {
         const axes = ["health", "defense", "attack", "speed", "luck", "agility", "mana"];
-        const spacing = 20;
+        const spacing = 20; // Increased spacing for better readability
     
         this.statTexts = axes.map((stat, index) => {
-            const statValue = stats[stat];
+            const statValue = stats[stat] !== undefined ? stats[stat] : 0;
             const text = this.scene.add.text(
                 x,
                 y + index * spacing,
                 `${stat.charAt(0).toUpperCase() + stat.slice(1)}: ${statValue}`,
-                { fontSize: '14px', fill: '#ffffff' }
+                { 
+                    fontSize: '16px', 
+                    fill: '#ffffff', 
+                    fontFamily: 'Arial', 
+                    shadow: { offsetX: 2, offsetY: 2, color: '#000', blur: 2, stroke: true, fill: true } 
+                }
             ).setOrigin(0, 0.5);
             text.visible = false; 
             return text;
         });
     }
+    
     
 }
