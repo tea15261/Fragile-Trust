@@ -25,14 +25,26 @@ export default class PreloadManager {
 
         // Monster assets
         scene.load.spritesheet('SkeletonBaseIdle', 'assets/enemy/Skeleton-crew/Skelton-base/idle/Idle-Sheet (1).png', { frameWidth: 32, frameHeight: 32 });
-        
+        scene.load.spritesheet('SkeletonBaseDeath', 'assets/enemy/Skeleton-crew/Skelton-base/death/Death-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+
         scene.load.spritesheet('SkeletonWarriorIdle', 'assets/enemy/Skeleton-crew/Skeleton-warrior/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('SkeletonWarriorDeath', 'assets/enemy/Skeleton-crew/Skeleton-warrior/death/Death-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+
         scene.load.spritesheet('SkeletonRougeIdle', 'assets/enemy/Skeleton-crew/Skeleton-rouge/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
-        scene.load.spritesheet('SkeletonMageIdle', 'assets/enemy/Skeleton-crew/Skeleton-mage/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('SkeletonRougeDeath', 'assets/enemy/Skeleton-crew/Skeleton-rouge/death/Death-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         
+        scene.load.spritesheet('SkeletonMageIdle', 'assets/enemy/Skeleton-crew/Skeleton-mage/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('SkeletonMageDeath', 'assets/enemy/Skeleton-crew/Skeleton-mage/death/Death-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        
+
+
         scene.load.spritesheet('OrcBaseIdle', 'assets/enemy/Orc-crew/Orc-base/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        
         scene.load.spritesheet('OrcWarriorIdle', 'assets/enemy/Orc-crew/Orc-warrior/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        
         scene.load.spritesheet('OrcRougeIdle', 'assets/enemy/Orc-crew/Orc-rouge/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        
         scene.load.spritesheet('OrcMageIdle', 'assets/enemy/Orc-crew/Orc-mage/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+    
     }
 }
