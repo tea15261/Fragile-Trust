@@ -9,10 +9,10 @@ const config = {
     physics: {  
         default: 'arcade',
         arcade: {
-            debug: false // collision debugging
+            debug: true // collision debugging
         }
     },
-    scene: [ForestScene, TavernScene, BattleScene], 
+    scene: [BattleScene, ForestScene, TavernScene], 
     scale: {
         mode: Phaser.Scale.FIT, 
         autoCenter: Phaser.Scale.CENTER_BOTH 
