@@ -167,7 +167,7 @@ export default class BattleManager {
         const bg = this.scene.add.rectangle(0, 0, panelWidth, panelHeight, 0x000000, 0.5);
         bg.setOrigin(0, 0);
   
-        let name = this.monsterManager.currentMonsterType;
+        let name = this.monsterManager.monsterName;
         const monsterNameText = this.scene.add.text(10, 10, name, {
           fontSize: "16px",
           fill: "#ffffff"
