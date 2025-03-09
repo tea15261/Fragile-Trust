@@ -11,6 +11,9 @@ export default class PreloadManager {
 
         // weapon assets
         scene.load.image('fists', 'assets/player/weapon/Hands holding nothing.png');
+
+        // item assets
+        scene.load.image('coinPouch', 'assets/items/coin-pouch.png');
         
         // environment assets
         scene.load.image('forest', 'assets/environment/forest-backdrop.png');
