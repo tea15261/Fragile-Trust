@@ -17,7 +17,71 @@ export class SkillManager {
           damage: 15,
           cooldown: 1,
           prerequisite: 'focus'
-        }
+        },
+        {
+          key: 'smite',
+          name: 'Smite',
+          description: "Deals 20% more damage to enemies with higher HP or the same.",
+          damage: 30,
+          cooldown: 2,
+          prerequisite: 'cripple'
+        },
+        {
+          key: 'hemorrhage',
+          name: 'Hemorrhage',
+          description: "Inflicts damage over time (bleed effect): -5, -10, -15, -20 hp.",
+          damage: 20,
+          cooldown: 3,
+          prerequisite: 'smite'
+        },
+        {
+          key: 'phantomSlash',
+          name: 'Phantom Slash',
+          description: "An attack that has a chance to hit twice (Luck helps decide chance).",
+          damage: 25,
+          cooldown: 2,
+          prerequisite: 'hemorrhage'
+        },
+        {
+          key: 'soulStrike',
+          name: 'Soul Strike',
+          description: "Heals the user based on damage dealt (80% of attack damage).",
+          damage: 35,
+          cooldown: 4,
+          prerequisite: 'phantomSlash'
+        },
+        {
+          key: 'execution',
+          name: 'Execution',
+          description: "Deals massive damage (attack + 50) if enemy HP is below 10% of initial health.",
+          damage: 50,
+          cooldown: 5,
+          prerequisite: 'soulStrike'
+        },
+        {
+          key: 'beserk',
+          name: 'Beserk',
+          description: "Reduces defense & health but greatly adds attack (defense -60%, health -50%, attack +75%).",
+          damage: 40,
+          cooldown: 4,
+          prerequisite: 'execution'
+        },
+        {
+          key: 'pierce',
+          name: 'Pierce',
+          description: "Deals damage that ignores a percentage of the enemy’s defense (70% ignored, 30% applied).",
+          damage: 35,
+          cooldown: 3,
+          prerequisite: 'beserk'
+        },
+        {
+          key: 'apocalypse',
+          name: 'Apocalypse',
+          description: "A cataclysmic attack that deals massive damage to all enemies and reduces their health to 10–15% (usable once per battle).",
+          damage: 60,
+          cooldown: 6,
+          prerequisite: 'pierce'
+        } 
       ],
       defensive: [
         {
@@ -35,7 +99,31 @@ export class SkillManager {
           defenseBoost: 20,
           cooldown: 4,
           prerequisite: 'deflect'
-        }
+        },
+        {
+          key: 'ironWill',
+          name: 'Iron Will',
+          description: "Prevents being knocked out for one turn, even if HP reaches zero.",
+          defenseBoost: 0,
+          cooldown: 3,
+          prerequisite: 'anticipate'
+        },
+        {
+          key: 'meditate',
+          name: 'Meditate',
+          description: "Skips a turn but gradually restores Health and Defense (adds 15% of initial).",
+          defenseBoost: 25,
+          cooldown: 3,
+          prerequisite: 'ironWill'
+        },
+        {
+          key: 'ironFortress',
+          name: 'Iron Fortress',
+          description: "Grants immunity to all damage for three turns and completely heals the user and restores defense.",
+          defenseBoost: 50,
+          cooldown: 5,
+          prerequisite: 'meditate'
+        }  
       ],
       magic: [
         {
@@ -257,26 +345,37 @@ export class SkillTreeUI {
     const nodePositions = {
       offensive: [
         { x: centerX, y: centerY - 30 },
-        { x: centerX, y: centerY - 70 }
+        { x: centerX - 100, y: centerY - 100 },
+        { x: centerX + 25, y: centerY - 55 },
+        { x: centerX + 60, y: centerY - 90 },
+        { x: centerX, y: centerY - 85 },
+        { x: centerX - 50, y: centerY - 120 },
+        { x: centerX, y: centerY - 120 },
+        { x: centerX + 30, y: centerY - 110 },
+        { x: centerX + 100, y: centerY - 105 },
+        { x: centerX + 140, y: centerY - 120 }
       ],
       defensive: [
         { x: centerX, y: centerY + 30 },
-        { x: centerX, y: centerY + 70 }
+        { x: centerX - 40, y: centerY + 70 },
+        { x: centerX + 50, y: centerY + 110 },
+        { x: centerX + 120, y: centerY + 130 },
+        { x: centerX + 50, y: centerY + 180 }
       ],
       magic: [
         { x: centerX + 50, y: centerY },
-        { x: centerX + 90, y: centerY },
-        { x: centerX + 130, y: centerY },
-        { x: centerX + 170, y: centerY },
-        { x: centerX + 210, y: centerY }
-      ],
-      utility: [
+        { x: centerX + 80, y: centerY + 15 },
+        { x: centerX + 100, y: centerY - 30 },
+        { x: centerX + 140, y: centerY + 30 },
+        { x: centerX + 180, y: centerY - 30 }
+    ],
+    utility: [
         { x: centerX - 50, y: centerY },
-        { x: centerX - 90, y: centerY },
-        { x: centerX - 130, y: centerY },
-        { x: centerX - 170, y: centerY },
-        { x: centerX - 210, y: centerY }
-      ]
+        { x: centerX - 80, y: centerY + 15 },
+        { x: centerX - 100, y: centerY - 30 },
+        { x: centerX - 140, y: centerY + 30 },
+        { x: centerX - 180, y: centerY - 30 }
+    ]
     };
   
     const categoryColors = {
