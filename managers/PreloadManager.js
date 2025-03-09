@@ -25,6 +25,7 @@ export default class PreloadManager {
 
         // Monster assets
         scene.load.spritesheet('SkeletonBaseIdle', 'assets/enemy/Skeleton-crew/Skelton-base/idle/Idle-Sheet (1).png', { frameWidth: 32, frameHeight: 32 });
+        
         scene.load.spritesheet('SkeletonWarriorIdle', 'assets/enemy/Skeleton-crew/Skeleton-warrior/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         scene.load.spritesheet('SkeletonRougeIdle', 'assets/enemy/Skeleton-crew/Skeleton-rouge/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         scene.load.spritesheet('SkeletonMageIdle', 'assets/enemy/Skeleton-crew/Skeleton-mage/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
