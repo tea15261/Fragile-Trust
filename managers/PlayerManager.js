@@ -23,6 +23,13 @@ export default class PlayerManager {
         this.spaceBar = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         this.resetKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
         this.escKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESCAPE);
+        this.keyE = this.scene.input.keyboard.addKey('E');
+
+        // Add WASD keys
+        this.wKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+        this.aKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+        this.sKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+        this.dKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
 
         // Player Stats
         this.stats = {
@@ -63,7 +70,6 @@ export default class PlayerManager {
 
         this.initInventory();
 
-
         if (!this.inBattle) {
             this.drawRadarChart(250, 85, 55, this.stats);
             this.displayStatValues(350, 35, this.stats);
@@ -84,14 +90,13 @@ export default class PlayerManager {
         this.skillTreeUI.showSkillTree();
     }
     
-    
     hideSkillTree() {
         if (this.skillTreeUI) {
             this.skillTreeUI.hideSkillTree();
         }
     }
 
-      addOwnedSkill(skillKey) {
+    addOwnedSkill(skillKey) {
         if (!this.ownedSkills.includes(skillKey)) {
             this.ownedSkills.push(skillKey);
             localStorage.setItem('ownedSkills', JSON.stringify(this.ownedSkills));
@@ -99,13 +104,13 @@ export default class PlayerManager {
         }
     }
 
-      resetOwnedSkills() {
+    resetOwnedSkills() {
         localStorage.removeItem('ownedSkills');
         this.ownedSkills = [];
         console.log("Owned Skills have been reset:", this.ownedSkills);
     }
 
-      initInventory() {
+    initInventory() {
         const inventoryCols = 5;
         const inventoryRows = 3;
         const cellSize = 40;
@@ -314,26 +319,26 @@ export default class PlayerManager {
 
         if (this.skillTreeUI && this.skillTreeUI.skillTreeContainer && this.skillTreeUI.skillTreeContainer.visible) {
             this.skillTreeUI.update();
-          }
+        }
 
-            const speed = this.stats.speed;
+        const speed = this.stats.speed;
 
-            this.customCursor.x = this.scene.input.x;
-            this.customCursor.y = this.scene.input.y;
+        this.customCursor.x = this.scene.input.x;
+        this.customCursor.y = this.scene.input.y;
 
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(0);
+        this.player.setVelocityX(0);
+        this.player.setVelocityY(0);
 
-            if ((this.keyE.isDown) && this.keyToggleReady) {
-                if (this.inventoryVisible || (this.skillTreeContainer && this.skillTreeContainer.visible)) {
-                    this.hideUI();
-                } else {
-                    this.toggleInventory();
-                }
-                this.keyToggleReady = false;
-            } else if (this.keyE.isUp) {
-                this.keyToggleReady = true;
+        if ((this.keyE.isDown || this.escKey.isDown) && this.keyToggleReady) {
+            if (this.inventoryVisible || (this.skillTreeContainer && this.skillTreeContainer.visible)) {
+                this.hideUI();
+            } else {
+                this.toggleInventory();
             }
+            this.keyToggleReady = false;
+        } else if (this.keyE.isUp && this.escKey.isUp) {
+            this.keyToggleReady = true;
+        }
 
         if (this.inventoryVisible) {
             this.customCursor.setTexture('openCursor');
@@ -357,20 +362,20 @@ export default class PlayerManager {
         const velocity = { x: 0, y: 0 };
 
         // Movement logic.
-        if (this.scene.cursors.left.isDown) {
+        if (this.scene.cursors.left.isDown || this.aKey.isDown) {
             velocity.x = -speed;
             this.player.flipX = true;
             this.hands.x = this.player.x - 4;
-        } else if (this.scene.cursors.right.isDown) {
+        } else if (this.scene.cursors.right.isDown || this.dKey.isDown) {
             velocity.x = speed;
             this.player.flipX = false;
             this.hands.x = this.player.x + 4;
         }
 
-        if (this.scene.cursors.up.isDown) {
+        if (this.scene.cursors.up.isDown || this.wKey.isDown) {
             velocity.y = -speed;
             this.hands.y = this.player.y - 2;
-        } else if (this.scene.cursors.down.isDown) {
+        } else if (this.scene.cursors.down.isDown || this.sKey.isDown) {
             velocity.y = speed;
             this.hands.y = this.player.y + 4;
         }
@@ -384,7 +389,7 @@ export default class PlayerManager {
 
         this.player.setVelocity(velocity.x, velocity.y);
 
-        if (!this.scene.cursors.up.isDown && !this.scene.cursors.down.isDown) {
+        if (!this.scene.cursors.up.isDown && !this.scene.cursors.down.isDown && !this.wKey.isDown && !this.sKey.isDown) {
             this.hands.y = this.player.y + 2;
         }
 
@@ -401,14 +406,6 @@ export default class PlayerManager {
             this.hands.anims.play('handsIdle', true);
             this.hands.x = this.player.x;
             this.hands.y = this.player.y;
-        }
-
-        // Toggle inventory with "E" key.
-        if (this.keyE.isDown && this.keyToggleReady) {
-            this.toggleInventory();
-            this.keyToggleReady = false;
-        } else if (this.keyE.isUp) {
-            this.keyToggleReady = true;
         }
     }
 
@@ -428,6 +425,7 @@ export default class PlayerManager {
         if(!this.inBattle) {
             this.inventoryButton.visible = false;
         
+            // Hide the radar chart and stat texts.
             if (this.radarChart) {
                 this.radarChart.visible = false;
             }
@@ -438,10 +436,11 @@ export default class PlayerManager {
                 this.statTexts.forEach(text => text.setVisible(false));
             }
             
+            // Hide skill tree UI if it exists.
             if (this.skillTreeContainer) {
                 this.skillTreeContainer.visible = false;
             }
-    }
+        }
         this.inventoryContainer.setVisible(false);
         this.inventoryVisible = false;
         this.scene.physics.resume();
