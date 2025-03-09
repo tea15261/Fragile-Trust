@@ -321,6 +321,7 @@ export default class BattleManager {
         this.endBattle();
       } else if (this.monsterManager.health <= 0) {
         console.log("Monster defeated!");
+        this.monsterManager.playDeathAnimation();
         this.endBattle();
       }
     }
@@ -331,4 +332,3 @@ export default class BattleManager {
       // add more logic here
     }
   }
-  
