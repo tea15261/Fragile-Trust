@@ -24,6 +24,14 @@ export default class PreloadManager {
         scene.load.spritesheet('stranger', 'assets/npc/Stranger.png', { frameWidth: 64, frameHeight: 64 });
 
         // Monster assets
+        scene.load.spritesheet('SkeletonBaseIdle', 'assets/enemy/Skeleton-crew/Skelton-base/idle/Idle-Sheet (1).png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('SkeletonWarriorIdle', 'assets/enemy/Skeleton-crew/Skeleton-warrior/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('SkeletonRougeIdle', 'assets/enemy/Skeleton-crew/Skeleton-rouge/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('SkeletonMageIdle', 'assets/enemy/Skeleton-crew/Skeleton-mage/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         
+        scene.load.spritesheet('OrcBaseIdle', 'assets/enemy/Orc-crew/Orc-base/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('OrcWarriorIdle', 'assets/enemy/Orc-crew/Orc-warrior/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('OrcRougeIdle', 'assets/enemy/Orc-crew/Orc-rouge/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('OrcMageIdle', 'assets/enemy/Orc-crew/Orc-mage/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
     }
 }
