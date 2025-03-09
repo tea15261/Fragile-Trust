@@ -39,8 +39,13 @@ export default class PlayerManager {
             speed: 160, // Move Speed
             luck: 40, // Critical Hit
             agility: 80, // Dodge Chance
-            mana: 80 // Magic Power
+            mana: 80, // Magic Power
+            coins: 1000 // Coins
         };
+
+        // Add a flag to check if the shop is open
+        this.shopOpen = false;
+
         this.init();
     }
 
@@ -189,12 +194,46 @@ export default class PlayerManager {
         });
     
         this.inventoryContainer.add([inventoryBg, hotbarSlot]);
+    
+        // Add coin pouch icon
+        const coinPouchX = inventoryWidth / 2 + cellSize / 2 + spacing + 2;
+        const coinPouchY = inventoryHeight + hotbarYOffset + 8;
+        const defaultScale = 1.9;
+        const coinPouch = this.scene.add.image(coinPouchX, coinPouchY, 'coinPouch');
+        
+        coinPouch.setDisplaySize(cellSize, cellSize);
+        coinPouch.setScale(defaultScale);
+        coinPouch.setOrigin(0, 0);
+        coinPouch.setInteractive();
+    
+        // Add coin text
+        const coinText = this.scene.add.text(
+            coinPouchX + cellSize + 10,
+            coinPouchY + cellSize / 2,
+            `Coins: ${this.stats.coins}`,
+            { fontSize: '16px', fill: '#FFD700', fontFamily: 'Arial', fontStyle: 'bold' }
+        ).setOrigin(0, 0.5);
+        coinText.setVisible(false);
+    
+        coinPouch.on('pointerover', () => {
+            // Increase scale relative to the default (e.g., 10% larger than default)
+            coinPouch.setScale(defaultScale * 1.1);
+            coinText.setVisible(true);
+        });
+    
+        coinPouch.on('pointerout', () => {
+            // Revert back to the default scale instead of 1
+            coinPouch.setScale(defaultScale);
+            coinText.setVisible(false);
+        });
+    
+        this.inventoryContainer.add([coinPouch, coinText]);
         this.inventoryContainer.setVisible(false);
-
+    
         const inventoryRightEdge = centerX + inventoryWidth;
         const buttonX = inventoryRightEdge + 20;
         const buttonY = this.scene.cameras.main.height / 2;
-
+    
         if(!this.inBattle) {
             this.inventoryButton = this.scene.add.graphics({ x: buttonX, y: buttonY });
         const trapezoidPoints = [
@@ -203,7 +242,7 @@ export default class PlayerManager {
             { x: 20, y: 130 },    // right bottom (shorter)
             { x: 20, y: -130 }    // right top (shorter)
         ];
-
+    
         this.inventoryButton.fillStyle(0x808080, 1);
         this.inventoryButton.beginPath();
         this.inventoryButton.moveTo(trapezoidPoints[0].x, trapezoidPoints[0].y);
@@ -280,6 +319,9 @@ export default class PlayerManager {
     }
 
     toggleInventory() {
+        // Prevent inventory access if the shop is open
+        if (this.shopOpen) return;
+
         this.inventoryVisible = !this.inventoryVisible;
         this.inventoryContainer.setVisible(this.inventoryVisible);
         this.inventoryContainer.setDepth(5);
@@ -297,7 +339,7 @@ export default class PlayerManager {
         if (this.inventoryButton) {
             this.inventoryButton.visible = this.inventoryVisible;
         }
-    
+
         if (this.inventoryVisible) {
             this.scene.physics.pause();
             this.scene.anims.pauseAll();
@@ -406,6 +448,11 @@ export default class PlayerManager {
             this.hands.anims.play('handsIdle', true);
             this.hands.x = this.player.x;
             this.hands.y = this.player.y;
+        }
+
+        // Update coin text
+        if (this.coinText) {
+            this.coinText.setText(`Coins: ${this.stats.coins}`);
         }
     }
 
