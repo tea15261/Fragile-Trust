@@ -39,12 +39,15 @@ export default class PreloadManager {
 
 
         scene.load.spritesheet('OrcBaseIdle', 'assets/enemy/Orc-crew/Orc-base/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('OrcBaseDeath', 'assets/enemy/Orc-crew/Orc-base/death/Death-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         
         scene.load.spritesheet('OrcWarriorIdle', 'assets/enemy/Orc-crew/Orc-warrior/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('OrcWarriorDeath', 'assets/enemy/Orc-crew/Orc-warrior/death/Death-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         
         scene.load.spritesheet('OrcRougeIdle', 'assets/enemy/Orc-crew/Orc-rouge/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('OrcRougeDeath', 'assets/enemy/Orc-crew/Orc-rouge/death/Death-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         
         scene.load.spritesheet('OrcMageIdle', 'assets/enemy/Orc-crew/Orc-mage/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
-    
+        scene.load.spritesheet('OrcMageDeath', 'assets/enemy/Orc-crew/Orc-mage/death/Death-Sheet.png', { frameWidth: 32, frameHeight: 32 });
     }
 }
