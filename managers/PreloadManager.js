@@ -30,8 +30,8 @@ export default class PreloadManager {
         scene.load.spritesheet('SkeletonWarriorIdle', 'assets/enemy/Skeleton-crew/Skeleton-warrior/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         scene.load.spritesheet('SkeletonWarriorDeath', 'assets/enemy/Skeleton-crew/Skeleton-warrior/death/Death-Sheet.png', { frameWidth: 64, frameHeight: 48 });
 
-        scene.load.spritesheet('SkeletonRougeIdle', 'assets/enemy/Skeleton-crew/Skeleton-rouge/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
-        scene.load.spritesheet('SkeletonRougeDeath', 'assets/enemy/Skeleton-crew/Skeleton-rouge/death/Death-Sheet.png', { frameWidth: 64, frameHeight: 64 });
+        scene.load.spritesheet('SkeletonRogueIdle', 'assets/enemy/Skeleton-crew/Skeleton-rogue/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('SkeletonRogueDeath', 'assets/enemy/Skeleton-crew/Skeleton-rogue/death/Death-Sheet.png', { frameWidth: 64, frameHeight: 64 });
         
         scene.load.spritesheet('SkeletonMageIdle', 'assets/enemy/Skeleton-crew/Skeleton-mage/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         scene.load.spritesheet('SkeletonMageDeath', 'assets/enemy/Skeleton-crew/Skeleton-mage/death/Death-Sheet.png', { frameWidth: 64, frameHeight: 64 });
@@ -42,8 +42,8 @@ export default class PreloadManager {
         scene.load.spritesheet('OrcWarriorIdle', 'assets/enemy/Orc-crew/Orc-warrior/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         scene.load.spritesheet('OrcWarriorDeath', 'assets/enemy/Orc-crew/Orc-warrior/death/Death-Sheet.png', { frameWidth: 96, frameHeight: 80 });
         
-        scene.load.spritesheet('OrcRougeIdle', 'assets/enemy/Orc-crew/Orc-rouge/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
-        scene.load.spritesheet('OrcRougeDeath', 'assets/enemy/Orc-crew/Orc-rouge/death/Death-Sheet.png', { frameWidth: 64, frameHeight: 64 });
+        scene.load.spritesheet('OrcRogueIdle', 'assets/enemy/Orc-crew/Orc-rogue/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('OrcRogueDeath', 'assets/enemy/Orc-crew/Orc-rogue/death/Death-Sheet.png', { frameWidth: 64, frameHeight: 64 });
         
         scene.load.spritesheet('OrcMageIdle', 'assets/enemy/Orc-crew/Orc-mage/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         scene.load.spritesheet('OrcMageDeath', 'assets/enemy/Orc-crew/Orc-mage/death/Death-Sheet.png', { frameWidth: 64, frameHeight: 64 });
