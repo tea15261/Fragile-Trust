@@ -1,4 +1,5 @@
 import PlayerManager from '/managers/PlayerManager.js';
+
 export default class MonsterManager {
     constructor(scene, playerManager) {
         this.scene = scene;
@@ -10,34 +11,104 @@ export default class MonsterManager {
         this.playerManager = playerManager;
 
         this.monsterTypes = [
-            { 
-                key: 'Slime',
-                stats: { health: 50, attack: 30, defense: 20 },
-                color: 0x00ffff // Green
-            },
             {
-                key: 'Skeleton',
+                key: 'SkeletonBase',
                 stats: { health: 75, attack: 45, defense: 30 },
-                color: 0xffffff // White
             },
             {
-                key: 'Goblin',
+                key: 'SkeletonWarrior',
+                stats: { health: 75, attack: 45, defense: 30 },
+            },
+            {
+                key: 'SkeletonRouge',
+                stats: { health: 75, attack: 45, defense: 30 },
+            },
+            {
+                key: 'SkeletonMage',
+                stats: { health: 75, attack: 45, defense: 30 },
+            },
+            {
+                key: 'OrcBase',
                 stats: { health: 100, attack: 60, defense: 40 },
-                color: 0x00ff00 // Cyan
             },
             {
-                key: 'Mage',
-                stats: { health: 125, attack: 75, defense: 50 },
-                color: 0xff00ff // Magenta
-            }
+                key: 'OrcWarrior',
+                stats: { health: 100, attack: 60, defense: 40 },
+            },
+            {
+                key: 'OrcRouge',
+                stats: { health: 100, attack: 60, defense: 40 },
+            },
+            {
+                key: 'OrcMage',
+                stats: { health: 100, attack: 60, defense: 40 },
+            },
         ];
 
         this.init();
     }
 
     init() {
+        this.createAnimations();
         this.generateNewMonster();
-        this.name();
+    }
+
+    createAnimations() {
+        this.scene.anims.create({
+            key: 'skeletonBaseIdle',
+            frames: this.scene.anims.generateFrameNumbers('SkeletonBaseIdle', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.scene.anims.create({
+            key: 'skeletonWarriorIdle',
+            frames: this.scene.anims.generateFrameNumbers('SkeletonWarriorIdle', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.scene.anims.create({
+            key: 'skeletonRougeIdle',
+            frames: this.scene.anims.generateFrameNumbers('SkeletonRougeIdle', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.scene.anims.create({
+            key: 'skeletonMageIdle',
+            frames: this.scene.anims.generateFrameNumbers('SkeletonMageIdle', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.scene.anims.create({
+            key: 'orcBaseIdle',
+            frames: this.scene.anims.generateFrameNumbers('OrcBaseIdle', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.scene.anims.create({
+            key: 'orcWarriorIdle',
+            frames: this.scene.anims.generateFrameNumbers('OrcWarriorIdle', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.scene.anims.create({
+            key: 'orcRougeIdle',
+            frames: this.scene.anims.generateFrameNumbers('OrcRougeIdle', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        this.scene.anims.create({
+            key: 'orcMageIdle',
+            frames: this.scene.anims.generateFrameNumbers('OrcMageIdle', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
     }
 
     generateNewMonster() {
@@ -48,7 +119,7 @@ export default class MonsterManager {
         this.attack = monsterType.stats.attack;
         this.defense = monsterType.stats.defense;
 
-        this.createMonster(monsterType.color);
+        this.createMonster();
     }
 
     createMonster(color) {
@@ -61,11 +132,42 @@ export default class MonsterManager {
         }
 
         this.shadow = this.scene.add.ellipse(posX, posY + 8, 30, 10, 0x000000, 0.5);
-        this.shadow.setOrigin(-2.0, -7.5);
+        this.shadow.setOrigin(-1.8, -10.2);
 
-        // create a colored square instead of a sprite
-        this.monster = this.scene.add.rectangle(posX, posY, 50, 50, color);
+        if (this.currentMonsterType === 'SkeletonBase') {
+            this.monster = this.scene.add.sprite(posX, posY, 'SkeletonBaseIdle');
+            this.monster.play('skeletonBaseIdle');
+        } else if (this.currentMonsterType === 'SkeletonWarrior') {
+            this.monster = this.scene.add.sprite(posX, posY, 'SkeletonWarriorIdle');
+            this.monster.play('skeletonWarriorIdle');
+        }
+        else if (this.currentMonsterType === 'SkeletonRouge') {
+            this.monster = this.scene.add.sprite(posX, posY, 'SkeletonRougeIdle');
+            this.monster.play('skeletonRougeIdle');
+        }
+        else if (this.currentMonsterType === 'SkeletonMage') {
+            this.monster = this.scene.add.sprite(posX, posY, 'SkeletonMageIdle');
+            this.monster.play('skeletonMageIdle');
+        }
+        else if (this.currentMonsterType === 'OrcBase') {
+            this.monster = this.scene.add.sprite(posX, posY, 'OrcBaseIdle');
+            this.monster.play('orcBaseIdle');
+        }
+        else if (this.currentMonsterType === 'OrcWarrior') {
+            this.monster = this.scene.add.sprite(posX, posY, 'OrcWarriorIdle');
+            this.monster.play('orcWarriorIdle');
+        }
+        else if (this.currentMonsterType === 'OrcRouge') {
+            this.monster = this.scene.add.sprite(posX, posY, 'OrcRougeIdle');
+            this.monster.play('orcRougeIdle');
+        }
+        else if (this.currentMonsterType === 'OrcMage') {
+            this.monster = this.scene.add.sprite(posX, posY, 'OrcMageIdle');
+            this.monster.play('orcMageIdle');
+        }
+        
         this.monster.setOrigin(0.5, 0.5);
+        this.monster.setSize(32, 32);
     }
 
     stats() {
@@ -94,5 +196,4 @@ export default class MonsterManager {
         this.generateNewMonster();
         this.show();
     }
-
 }
