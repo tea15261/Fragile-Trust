@@ -1,5 +1,6 @@
 import PlayerManager from '/managers/PlayerManager.js';
 import PreloadManager from '/managers/PreloadManager.js';
+import ShopManager from '/managers/ShopManager.js';
 
 export default class TavernScene extends Phaser.Scene {
     constructor() {
@@ -45,6 +46,10 @@ export default class TavernScene extends Phaser.Scene {
         this.sceneChangeBox.create(320, 365, null).setSize(30, 5).setOrigin(0, 0).setVisible(false); 
         this.physics.add.overlap(this.playerManager.player, this.sceneChangeBox, this.changeScene, null, this);
 
+        this.showShop = this.physics.add.staticGroup();
+        this.showShop.create(320, 100, null).setSize(50, 10).setOrigin(0, 0).setVisible(false);
+
+        this.physics.add.overlap(this.playerManager.player, this.showShop, this.openShop, null, this);
     }
 
     update() {
@@ -60,6 +65,12 @@ export default class TavernScene extends Phaser.Scene {
 
     changeScene() {
         this.scene.start('forest', { from: 'tavern' }); 
+    }
+
+    openShop() {
+        this.physics.pause();
+        this.anims.pauseAll();
+        new ShopManager(this, this.playerManager);
     }
 
     createObstacles() {
