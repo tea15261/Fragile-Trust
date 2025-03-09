@@ -129,19 +129,19 @@ export class SkillTreeUI {
     const nodePositions = {
       offensive: [
         { x: centerX, y: centerY - 30 },
-        { x: centerX, y: centerY - 100 }
+        { x: centerX, y: centerY - 70 }
       ],
       defensive: [
         { x: centerX, y: centerY + 30 },
-        { x: centerX, y: centerY + 100 }
+        { x: centerX, y: centerY + 70 }
       ],
       magic: [
         { x: centerX + 50, y: centerY },
-        { x: centerX + 120, y: centerY }
+        { x: centerX + 90, y: centerY }
       ],
       utility: [
         { x: centerX - 50, y: centerY },
-        { x: centerX - 120, y: centerY }
+        { x: centerX - 90, y: centerY }
       ]
     };
   
@@ -157,7 +157,7 @@ export class SkillTreeUI {
       skills.forEach((skill, i) => {
         const pos = (nodePositions[category] && nodePositions[category][i]) || { x: centerX, y: centerY };
         const fillColor = categoryColors[category];
-        const circle = this.scene.add.circle(pos.x, pos.y, 20, fillColor);
+        const circle = this.scene.add.circle(pos.x, pos.y, 10, fillColor);
         circle.setInteractive({ useHandCursor: true });
   
         circle.isBeingHeld = false;
