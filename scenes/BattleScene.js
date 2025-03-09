@@ -20,7 +20,8 @@ export default class BattleScene extends Phaser.Scene {
 
         // initialize MonsterManager.
         this.monsterManager = new MonsterManager(this, this.playerManager);
-        this.monsterManager.generateNewMonster();
+        this.monsterManager.generateNewMonster("OrcMage");
+
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
         this.monsterManager.monster.setPosition(centerX - 50, centerY);
