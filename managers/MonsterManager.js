@@ -11,39 +11,51 @@ export default class MonsterManager {
         this.playerManager = playerManager;
 
         this.monsterTypes = [
+            // Skeletons (Weaker than Orcs, but still progressively stronger)
             {
                 key: 'SkeletonBase',
-                stats: { health: 75, attack: 45, defense: 30 },
+                name: 'Skeleton',
+                stats: { health: 75, attack: 40, defense: 25 },
+            },
+            {
+                key: 'SkeletonRogue',
+                name: 'Skeleton Rogue',
+                stats: { health: 80, attack: 50, defense: 30 },
             },
             {
                 key: 'SkeletonWarrior',
-                stats: { health: 75, attack: 45, defense: 30 },
-            },
-            {
-                key: 'SkeletonRouge',
-                stats: { health: 75, attack: 45, defense: 30 },
+                name: 'Skeleton Warrior',
+                stats: { health: 90, attack: 60, defense: 35 },
             },
             {
                 key: 'SkeletonMage',
-                stats: { health: 75, attack: 45, defense: 30 },
+                name: 'Skeleton Mage',
+                stats: { health: 85, attack: 70, defense: 30 },
             },
+        
+            // Orcs (Stronger than Skeletons in same order)
             {
                 key: 'OrcBase',
-                stats: { health: 100, attack: 60, defense: 40 },
+                name: 'Orc',
+                stats: { health: 100, attack: 55, defense: 35 }, // Weaker than Skeleton Mage, but stronger than Skeleton Base
+            },
+            {
+                key: 'OrcRogue',
+                name: 'Orc Rogue',
+                stats: { health: 110, attack: 65, defense: 40 },
             },
             {
                 key: 'OrcWarrior',
-                stats: { health: 100, attack: 60, defense: 40 },
-            },
-            {
-                key: 'OrcRouge',
-                stats: { health: 100, attack: 60, defense: 40 },
+                name: 'Orc Warrior',
+                stats: { health: 120, attack: 75, defense: 45 },
             },
             {
                 key: 'OrcMage',
-                stats: { health: 100, attack: 60, defense: 40 },
+                name: 'Orc Mage',
+                stats: { health: 115, attack: 85, defense: 40 },
             },
         ];
+        
 
         this.init();
     }
@@ -83,15 +95,15 @@ export default class MonsterManager {
         });
 
         this.scene.anims.create({
-            key: 'skeletonRougeIdle',
-            frames: this.scene.anims.generateFrameNumbers('SkeletonRougeIdle', { start: 0, end: 3 }),
+            key: 'skeletonRogueIdle',
+            frames: this.scene.anims.generateFrameNumbers('SkeletonRogueIdle', { start: 0, end: 3 }),
             frameRate: 10,
             repeat: -1
         });
 
         this.scene.anims.create({
-            key: 'skeletonRougeDeath',
-            frames: this.scene.anims.generateFrameNumbers('SkeletonRougeDeath', { start: 0, end: 5 }),
+            key: 'skeletonRogueDeath',
+            frames: this.scene.anims.generateFrameNumbers('SkeletonRogueDeath', { start: 0, end: 5 }),
             frameRate: 10,
             repeat: 0
         });
@@ -139,15 +151,15 @@ export default class MonsterManager {
         });
 
         this.scene.anims.create({
-            key: 'orcRougeIdle',
-            frames: this.scene.anims.generateFrameNumbers('OrcRougeIdle', { start: 0, end: 3 }),
+            key: 'orcRogueIdle',
+            frames: this.scene.anims.generateFrameNumbers('OrcRogueIdle', { start: 0, end: 3 }),
             frameRate: 10,
             repeat: -1
         });
 
         this.scene.anims.create({
-            key: 'orcRougeDeath',
-            frames: this.scene.anims.generateFrameNumbers('OrcRougeDeath', { start: 0, end: 5 }),
+            key: 'orcRogueDeath',
+            frames: this.scene.anims.generateFrameNumbers('OrcRogueDeath', { start: 0, end: 5 }),
             frameRate: 10,
             repeat: 0
         });
@@ -178,6 +190,7 @@ export default class MonsterManager {
         }
     
         this.currentMonsterType = monsterType.key;
+        this.monsterName = monsterType.name;
         this.health = monsterType.stats.health;
         this.attack = monsterType.stats.attack;
         this.defense = monsterType.stats.defense;
@@ -205,9 +218,9 @@ export default class MonsterManager {
             this.monster = this.scene.add.sprite(posX, posY, 'SkeletonWarriorIdle');
             this.monster.play('skeletonWarriorIdle');
         }
-        else if (this.currentMonsterType === 'SkeletonRouge') {
-            this.monster = this.scene.add.sprite(posX, posY, 'SkeletonRougeIdle');
-            this.monster.play('skeletonRougeIdle');
+        else if (this.currentMonsterType === 'SkeletonRogue') {
+            this.monster = this.scene.add.sprite(posX, posY, 'SkeletonRogueIdle');
+            this.monster.play('skeletonRogueIdle');
         }
         else if (this.currentMonsterType === 'SkeletonMage') {
             this.monster = this.scene.add.sprite(posX, posY, 'SkeletonMageIdle');
@@ -221,9 +234,9 @@ export default class MonsterManager {
             this.monster = this.scene.add.sprite(posX, posY, 'OrcWarriorIdle');
             this.monster.play('orcWarriorIdle');
         }
-        else if (this.currentMonsterType === 'OrcRouge') {
-            this.monster = this.scene.add.sprite(posX, posY, 'OrcRougeIdle');
-            this.monster.play('orcRougeIdle');
+        else if (this.currentMonsterType === 'OrcRogue') {
+            this.monster = this.scene.add.sprite(posX, posY, 'OrcRogueIdle');
+            this.monster.play('orcRogueIdle');
         }
         else if (this.currentMonsterType === 'OrcMage') {
             this.monster = this.scene.add.sprite(posX, posY, 'OrcMageIdle');
@@ -243,8 +256,8 @@ export default class MonsterManager {
         } else if (this.currentMonsterType === 'SkeletonWarrior') {
             this.monster.play('skeletonWarriorDeath');
         }
-        else if (this.currentMonsterType === 'SkeletonRouge') {
-            this.monster.play('skeletonRougeDeath');
+        else if (this.currentMonsterType === 'SkeletonRogue') {
+            this.monster.play('skeletonRogueDeath');
         }
         else if (this.currentMonsterType === 'SkeletonMage') {
             this.monster.play('skeletonMageDeath');
@@ -255,8 +268,8 @@ export default class MonsterManager {
         else if (this.currentMonsterType === 'OrcWarrior') {
             this.monster.play('orcWarriorDeath');
         }
-        else if (this.currentMonsterType === 'OrcRouge') {
-            this.monster.play('orcRougeDeath');
+        else if (this.currentMonsterType === 'OrcRogue') {
+            this.monster.play('orcRogueDeath');
         }
         else if (this.currentMonsterType === 'OrcMage') {
             this.monster.play('orcMageDeath');
@@ -266,13 +279,13 @@ export default class MonsterManager {
 
         if (this.currentMonsterType === 'OrcWarrior')
             this.monster.setPosition(currentX-8, currentY-25);
-        else if (this.currentMonsterType === 'SkeletonRouge')
+        else if (this.currentMonsterType === 'SkeletonRogue')
             this.monster.setPosition(currentX+10, currentY-15);
         else if (this.currentMonsterType === 'SkeletonWarrior')
             this.monster.setPosition(currentX+10, currentY-10);
         else if (this.currentMonsterType === 'OrcBase')
             this.monster.setPosition(currentX-8, currentY-17);
-        else if (this.currentMonsterType === 'OrcRouge')
+        else if (this.currentMonsterType === 'OrcRogue')
             this.monster.setPosition(currentX-5, currentY-15);
         else if (this.currentMonsterType === 'OrcMage')
             this.monster.setPosition(currentX-5, currentY-15);
