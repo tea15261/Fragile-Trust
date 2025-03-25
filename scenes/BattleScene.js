@@ -14,6 +14,11 @@ export default class BattleScene extends Phaser.Scene {
     
     create() {
         this.add.image(320, 200, 'battle-scene').setScale(1.07, 0.6721);
+        
+        // Create the custom cursor first.
+        this.customCursor = this.add.sprite(0, 0, 'customCursor').setScale(0.6);
+        this.customCursor.setVisible(false);
+        
         this.playerManager = new PlayerManager(this, true); // true indicates the player is in battle
         this.cursors = this.input.keyboard.createCursorKeys();
         this.input.setDefaultCursor('none');
@@ -28,11 +33,10 @@ export default class BattleScene extends Phaser.Scene {
 
         const playerX = this.cameras.main.width - 50; 
         const playerY = 230; 
-        this.playerManager.player.setPosition(playerX, centerY+20);
+        this.playerManager.player.setPosition(playerX, centerY + 20);
+        
+        // Now create the BattleManager and pass the customCursor.
         this.battleManager = new BattleManager(this, this.playerManager, this.monsterManager, this.customCursor);
-
-        this.customCursor = this.add.sprite(0, 0, 'customCursor').setScale(0.6);
-        this.customCursor.setVisible(false);
 
         this.sceneChangeBox = this.physics.add.staticGroup();
         this.sceneChangeBox.create(640, 200, null)
@@ -78,6 +82,7 @@ export default class BattleScene extends Phaser.Scene {
             { x: 320, y: 182, width: 800, height: 10 },  // mid top wall
             { x: 320, y: 222, width: 800, height: 10 },  // mid bottom wall
             { x: 115, y: 180, width: 10, height: 400 },   // left wall
+            { x: 340, y: 180, width: 10, height: 400 },   // mob boundary wall
             { x: 320, y: 330, width: 800, height: 10 },   // bottom wall
         ];
         console.log(this.monsterManager.stats());
