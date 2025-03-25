@@ -64,6 +64,7 @@ export default class BattleManager {
             container.setInteractive(new Phaser.Geom.Rectangle(0, 0, boxWidth, boxHeight), Phaser.Geom.Rectangle.Contains);
 
             container.on("pointerover", () => {
+                if (!this.customCursor) return;
                 this.customCursor.setTexture("openCursor").setScale(0.6);
                 this.scene.tweens.add({
                     targets: container,
@@ -334,6 +335,153 @@ export default class BattleManager {
     endBattle() {
       this.battleEnded = true;
       console.log("Battle has ended.");
-      // add more logic here
-    }
-  }
+      
+      // Delay to allow death animation and player to process win
+      this.scene.time.delayedCall(1500, () => {
+          // Animate UI panels off-screen (slide up and fade out)
+          this.scene.tweens.add({
+              targets: [this.playerStatsPanel, this.monsterStatsPanel],
+              y: -200, // slide out
+              alpha: 0,
+              duration: 1000,
+              ease: "Power2"
+          });
+  
+          // Animate battle UI buttons downward off the screen at the same time
+          this.uiBoxes.forEach((container, index) => {
+              this.scene.tweens.add({
+                  targets: container,
+                  y: container.y + 200, // adjust 200 to how far off screen you want them
+                  duration: 500,
+                  ease: "Power2",
+                  delay: index * 100
+              });
+          });
+  
+          // Create Victory Screen popup
+          const victoryContainer = this.scene.add.container(0, 0);
+          const bg = this.scene.add.rectangle(320, 200, 400, 300, 0x000000, 0.8);
+          bg.setStrokeStyle(3, 0xffffff);
+          
+          const victoryText = this.scene.add.text(320, 150, "Victory!", {
+              fontSize: "32px",
+              fill: "#FFD700",
+              fontStyle: "bold"
+          }).setOrigin(0.5);
+  
+          const coinsText = this.scene.add.text(320, 220, "Coins Earned: 0", {
+              fontSize: "24px",
+              fill: "#ffffff"
+          }).setOrigin(0.5);
+  
+          victoryContainer.add([bg, victoryText, coinsText]);
+  
+          // Animate coins counting up to reward value
+          const rewardValue = Phaser.Math.Between(150, 250); // random coin reward
+
+          this.scene.tweens.addCounter({
+              from: 0,
+              to: rewardValue,
+              duration: 1000,
+              ease: "Linear",
+              onUpdate: tween => {
+                  const value = Math.floor(tween.getValue());
+                  coinsText.setText("Coins Earned: " + value);
+              },
+              onComplete: () => {
+                  // Add coins to the player's stat.
+                  this.playerManager.stats.coins += rewardValue;
+                  
+                  // Determine loot drops.
+                  let baseDrops = Phaser.Math.Between(0, 2);
+                  let extraDrops = 0;
+                  if (this.playerManager.stats.luck > 50) {
+                      extraDrops = Math.floor((this.playerManager.stats.luck - 50) / 10);
+                  }
+                  const totalDrops = baseDrops + extraDrops;
+                  
+                  const possibleItems = [
+                      "Ember-Touched Band",
+                      "Gilded Topaz Ring",
+                      "Carved Bone Loop",
+                      "Duskworn Ring",
+                      "Moonlit Band",
+                      "Spiral-Engraved Ring",
+                      "Weathered Bronze Band",
+                      "Crimson Crest Ring",
+                      "Azure Jewel Band",
+                      "Verdant Inlay Ring"
+                  ];
+                  let lootItems = [];
+                  for (let i = 0; i < totalDrops; i++) {
+                      let item = Phaser.Utils.Array.GetRandom(possibleItems);
+                      lootItems.push(item);
+                      // After adding items to inventory, for example in BattleManager.endBattle():
+                      this.playerManager.inventory.push(item);
+                      localStorage.setItem('inventory', JSON.stringify(this.playerManager.inventory));
+                      console.log("Player received:", item);
+                  }
+                  
+                  // Display the loot on the victory screen.
+                  let lootTextStr = "Loot: " + (lootItems.length > 0 ? lootItems.join(", ") : "None");
+                  const lootText = this.scene.add.text(320, 260, lootTextStr, {
+                      fontSize: "20px",
+                      fill: "#FFD700",
+                      fontStyle: "bold"
+                  }).setOrigin(0.5);
+                  victoryContainer.add(lootText);
+
+                  // After battle, refill temporary battle stats:
+                  this.playerManager.stats.health = 1000;
+                  this.playerManager.stats.defense = 50;
+                  this.playerManager.stats.mana = 80;
+
+                  // Save the persistent stats to localStorage.
+                  const persistentStats = {
+                      coins: this.playerManager.stats.coins,
+                      attack: this.playerManager.stats.attack,
+                      speed: this.playerManager.stats.speed,
+                      luck: this.playerManager.stats.luck,
+                      agility: this.playerManager.stats.agility
+                  };
+                  localStorage.setItem('playerPersistentStats', JSON.stringify(persistentStats));
+              }
+          });
+
+          // Add a "Continue" button below the victory panel
+          const continueButton = this.scene.add.text(320, 300, "Continue", {
+              fontSize: "24px",
+              fill: "#FFD700",
+              fontFamily: "Arial",
+              fontStyle: "bold",
+              backgroundColor: "#000000", // For contrast; adjust as needed
+              padding: { left: 10, right: 10, top: 5, bottom: 5 }
+          }).setOrigin(0.5);
+
+          // Enable interactivity with a pointer (open cursor on hover)
+          continueButton.setInteractive({ cursor: 'pointer' });
+
+          continueButton.on('pointerover', () => {
+              continueButton.setStyle({ fill: "#FFFFFF" });
+              this.customCursor.setTexture("openCursor").setScale(0.6);
+          });
+
+          continueButton.on('pointerout', () => {
+              continueButton.setStyle({ fill: "#FFD700" });
+              this.customCursor.setTexture("customCursor").setScale(0.6);
+          });
+
+          continueButton.on('pointerdown', () => {
+              // Fade the scene to black over 2 seconds
+              this.scene.cameras.main.fadeOut(2000, 0, 0, 0);
+              // After 2 seconds, transition to the forest scene with 'battle' data
+              this.scene.time.delayedCall(2000, () => {
+                  this.scene.scene.start('forest', { from: 'battle' });
+              });
+          });
+
+          // Add the continue button to the Victory container so it appears below the victory panel
+          victoryContainer.add(continueButton);
+      });
+  }  
+}
