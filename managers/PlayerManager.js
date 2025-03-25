@@ -3,6 +3,7 @@ export default class PlayerManager {
     constructor(scene, inBattle = false) {
         this.scene = scene;
         this.inBattle = inBattle;
+        this.inputDisabled = false;  // new flag: when true, no movement or inventory toggles
         this.player = null;
         this.hands = null;
         this.shadow = null;
@@ -32,16 +33,29 @@ export default class PlayerManager {
         this.dKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
 
         // Player Stats
-        this.stats = {
-            health: 100, // Health
-            defense: 50, // Defense
-            attack: 75, // Attack Power
-            speed: 160, // Move Speed
-            luck: 40, // Critical Hit
-            agility: 80, // Dodge Chance
-            mana: 80, // Magic Power
-            coins: 1000 // Coins
+        const savedPersistentStats = localStorage.getItem('playerPersistentStats')
+        ? JSON.parse(localStorage.getItem('playerPersistentStats'))
+        : {
+            coins: 1000,
+            attack: 75,
+            speed: 160,
+            luck: 40,
+            agility: 80
         };
+
+        this.stats = {
+            health: 1000,       // Temporary – will be refilled after battle
+            defense: 50,        // Temporary – will be refilled after battle
+            mana: 80,           // Temporary – will be refilled after battle
+            attack: savedPersistentStats.attack,
+            speed: savedPersistentStats.speed,
+            luck: savedPersistentStats.luck,
+            agility: savedPersistentStats.agility,
+            coins: savedPersistentStats.coins
+        };
+        this.inventory = localStorage.getItem('inventory')
+            ? JSON.parse(localStorage.getItem('inventory'))
+            : [];
 
         // Add a flag to check if the shop is open
         this.shopOpen = false;
@@ -113,6 +127,12 @@ export default class PlayerManager {
         localStorage.removeItem('ownedSkills');
         this.ownedSkills = [];
         console.log("Owned Skills have been reset:", this.ownedSkills);
+    }
+
+    resetInventory() {
+        localStorage.removeItem('inventory');
+        this.inventory = [];
+        console.log("Inventory has been reset:", this.inventory);
     }
 
     initInventory() {
@@ -352,11 +372,13 @@ export default class PlayerManager {
     update() {
         if (Phaser.Input.Keyboard.JustDown(this.spaceBar)) {
             console.log("Player Stats:", this.stats);
+            console.log("Player Inventory:", this.inventory);
             console.log("Owned Skills:", this.ownedSkills);
         }
 
         if (Phaser.Input.Keyboard.JustDown(this.resetKey)) {
             this.resetOwnedSkills();
+            this.resetInventory();
         }
 
         if (this.skillTreeUI && this.skillTreeUI.skillTreeContainer && this.skillTreeUI.skillTreeContainer.visible) {
