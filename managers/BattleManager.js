@@ -204,12 +204,14 @@ export default class BattleManager {
       let statsStr = "";
       const playerStats = this.playerManager.stats;
       for (let key in playerStats) {
+        // Skip displaying coins in player stat panel
+        if (key === "coins") continue;
         let value = playerStats[key];
         if (key === "health" && value < 0) value = 0;
         statsStr += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}\n`;
       }
       this.playerStatsText.setText(statsStr);
-
+    
       let mStatsStr = "";
       const monsterStats = this.monsterManager.stats();
       for (let key in monsterStats) {
