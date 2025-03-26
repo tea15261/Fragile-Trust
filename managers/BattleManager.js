@@ -122,83 +122,90 @@ export default class BattleManager {
     }
 
     displayCombatantStats() {
-        if (!this.playerStatsPanel) {
-            const panelWidth = 220, panelHeight = 160;
-            const playerPanelX = this.scene.cameras.main.width - panelWidth - 20;
-            const playerPanelYTarget = 20;
-            this.playerStatsPanel = this.scene.add.container(playerPanelX, -panelHeight);
-
-            const bg = this.scene.add.graphics();
-            bg.fillStyle(0x111111, 0.8);
-            bg.fillRoundedRect(0, 0, panelWidth, panelHeight, 12);
-            bg.lineStyle(3, 0xffffff);
-            bg.strokeRoundedRect(0, 0, panelWidth, panelHeight, 12);
-
-            const playerNameText = this.scene.add.text(10, 10, "Player", {
-                fontSize: "18px",
-                fill: "#FFD700",
-                fontStyle: "bold"
-            });
-
-            let statsStr = "";
-            const stats = this.playerManager.stats;
-            for (let key in stats) {
-                statsStr += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${stats[key]}\n`;
-            }
-            this.playerStatsText = this.scene.add.text(10, 40, statsStr, {
-                fontSize: "14px",
-                fill: "#ffffff"
-            });
-
-            this.playerStatsPanel.add([bg, playerNameText, this.playerStatsText]);
-
-            this.scene.tweens.add({
-                targets: this.playerStatsPanel,
-                y: playerPanelYTarget,
-                duration: 500,
-                ease: "Power2"
-            });
-        }
-
-        if (!this.monsterStatsPanel) {
-            const panelWidth = 220, panelHeight = 160;
-            const monsterPanelX = 20;
-            const monsterPanelYTarget = 20;
-            this.monsterStatsPanel = this.scene.add.container(monsterPanelX, -panelHeight);
-
-            const bg = this.scene.add.graphics();
-            bg.fillStyle(0x111111, 0.8);
-            bg.fillRoundedRect(0, 0, panelWidth, panelHeight, 12);
-            bg.lineStyle(3, 0xff0000);
-            bg.strokeRoundedRect(0, 0, panelWidth, panelHeight, 12);
-
-            let name = this.monsterManager.monsterName;
-            const monsterNameText = this.scene.add.text(10, 10, name, {
-                fontSize: "18px",
-                fill: "#FF0000",
-                fontStyle: "bold"
-            });
-
-            const monsterStats = this.monsterManager.stats();
-            let statsStr = "";
-            for (let key in monsterStats) {
-                statsStr += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${monsterStats[key]}\n`;
-            }
-            this.monsterStatsText = this.scene.add.text(10, 40, statsStr, {
-                fontSize: "14px",
-                fill: "#ffffff"
-            });
-
-            this.monsterStatsPanel.add([bg, monsterNameText, this.monsterStatsText]);
-
-            this.scene.tweens.add({
-                targets: this.monsterStatsPanel,
-                y: monsterPanelYTarget,
-                duration: 500,
-                ease: "Power2"
-            });
-        }
-    }
+      if (!this.playerStatsPanel) {
+          const panelWidth = 220, panelHeight = 160;
+          const playerPanelX = this.scene.cameras.main.width - panelWidth - 20;
+          const playerPanelYTarget = 20;
+          this.playerStatsPanel = this.scene.add.container(playerPanelX, -panelHeight);
+  
+          const bg = this.scene.add.graphics();
+          bg.fillStyle(0x111111, 0.8);
+          bg.fillRoundedRect(0, 0, panelWidth, panelHeight, 12);
+          bg.lineStyle(3, 0xffffff);
+          bg.strokeRoundedRect(0, 0, panelWidth, panelHeight, 12);
+  
+          const playerNameText = this.scene.add.text(10, 10, "Player", {
+              fontSize: "18px",
+              fill: "#FFD700",
+              fontStyle: "bold"
+          });
+  
+          let statsStr = "";
+          const stats = this.playerManager.stats;
+          for (let key in stats) {
+              // Skip the coin stat
+              if (key === "coins") continue;
+              let value = stats[key];
+              // Ensure health doesn't show negative
+              if (key === "health" && value < 0) value = 0;
+              statsStr += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}\n`;
+          }
+          this.playerStatsText = this.scene.add.text(10, 40, statsStr, {
+              fontSize: "14px",
+              fill: "#ffffff"
+          });
+  
+          this.playerStatsPanel.add([bg, playerNameText, this.playerStatsText]);
+  
+          this.scene.tweens.add({
+              targets: this.playerStatsPanel,
+              y: playerPanelYTarget,
+              duration: 500,
+              ease: "Power2"
+          });
+      }
+  
+      if (!this.monsterStatsPanel) {
+          const panelWidth = 220, panelHeight = 160;
+          const monsterPanelX = 20;
+          const monsterPanelYTarget = 20;
+          this.monsterStatsPanel = this.scene.add.container(monsterPanelX, -panelHeight);
+  
+          const bg = this.scene.add.graphics();
+          bg.fillStyle(0x111111, 0.8);
+          bg.fillRoundedRect(0, 0, panelWidth, panelHeight, 12);
+          bg.lineStyle(3, 0xff0000);
+          bg.strokeRoundedRect(0, 0, panelWidth, panelHeight, 12);
+  
+          let name = this.monsterManager.monsterName;
+          const monsterNameText = this.scene.add.text(10, 10, name, {
+              fontSize: "18px",
+              fill: "#FF0000",
+              fontStyle: "bold"
+          });
+  
+          const monsterStats = this.monsterManager.stats();
+          let statsStr = "";
+          for (let key in monsterStats) {
+              let value = monsterStats[key];
+              if (key === "health" && value < 0) value = 0;
+              statsStr += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}\n`;
+          }
+          this.monsterStatsText = this.scene.add.text(10, 40, statsStr, {
+              fontSize: "14px",
+              fill: "#ffffff"
+          });
+  
+          this.monsterStatsPanel.add([bg, monsterNameText, this.monsterStatsText]);
+  
+          this.scene.tweens.add({
+              targets: this.monsterStatsPanel,
+              y: monsterPanelYTarget,
+              duration: 500,
+              ease: "Power2"
+          });
+      }
+  }
   
     updateCombatantStats() {
       let statsStr = "";
@@ -283,13 +290,17 @@ export default class BattleManager {
     performPlayerRun() {
       const escapeThreshold = Phaser.Math.Between(0, 100);
       if (this.playerManager.stats.luck >= escapeThreshold) {
-        console.log("Player successfully ran away!");
-        this.endBattle();
+          console.log("Player successfully ran away!");
+          // Fade out and transition without awarding coins or loot.
+          this.scene.cameras.main.fadeOut(2000, 0, 0, 0);
+          this.scene.time.delayedCall(2000, () => {
+              this.scene.scene.start('forest', { from: 'battle' });
+          });
       } else {
-        console.log("Escape failed! Monster attacks.");
-        this.monsterTurn();
+          console.log("Escape failed! Monster attacks.");
+          this.monsterTurn();
       }
-    }
+  }
   
     monsterTurn() {
       this.scene.time.delayedCall(500, () => {
