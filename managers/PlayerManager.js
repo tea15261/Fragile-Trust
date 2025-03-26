@@ -39,7 +39,7 @@ export default class PlayerManager {
             coins: 1000,
             attack: 75,
             speed: 160,
-            luck: 100,
+            luck: 5000,
             agility: 80
         };
 
