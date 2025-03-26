@@ -475,6 +475,8 @@ export default class PlayerManager {
                 itemImage.on("dragstart", (pointer) => {
                     itemImage.originalX = itemImage.x;
                     itemImage.originalY = itemImage.y;
+                    // Change cursor to closed while dragging
+                    this.customCursor.setTexture("closedCursor");
                 });
     
                 itemImage.on("drag", (pointer, dragX, dragY) => {
@@ -483,29 +485,38 @@ export default class PlayerManager {
                 });
     
                 itemImage.on("dragend", (pointer, dragX, dragY) => {
-                    // Determine if dropped over a valid slot
+                    // After dragging ends, revert cursor back to open
+                    this.customCursor.setTexture("openCursor");
+                    // Determine if dropped over a valid empty slot
                     let foundSlot = null;
                     this.inventorySlots.forEach(s => {
                         const worldX = this.inventoryContainer.x + s.x;
                         const worldY = this.inventoryContainer.y + s.y;
-                        if (dragX >= worldX && dragX <= worldX + s.width &&
-                            dragY >= worldY && dragY <= worldY + s.height) {
+                        if (
+                            dragX >= worldX &&
+                            dragX <= worldX + s.width &&
+                            dragY >= worldY &&
+                            dragY <= worldY + s.height &&
+                            this.inventoryData[s.index] === null // empty slot check
+                        ) {
                             foundSlot = s;
                         }
                     });
-    
-                    if (foundSlot && this.inventoryData[foundSlot.index] == null) {
-                        // Move item to new slot
+                    if (foundSlot) {
+                        // Place item in the new slot in the model
                         this.inventoryData[foundSlot.index] = this.inventoryData[itemImage.slotIndex];
                         this.inventoryData[itemImage.slotIndex] = null;
+                        // Update item's slotIndex and position to new slot
                         itemImage.slotIndex = foundSlot.index;
-                        itemImage.x = foundSlot.x + 20;
-                        itemImage.y = foundSlot.y + 20;
+                        itemImage.x = foundSlot.x + (foundSlot.width / 2);
+                        itemImage.y = foundSlot.y + (foundSlot.height / 2);
+                        // Optionally update localStorage
+                        localStorage.setItem('inventoryData', JSON.stringify(this.inventoryData));
                     } else {
-                        // Revert position
+                        // Revert item to its original slot position
                         const origSlot = this.inventorySlots[itemImage.slotIndex];
-                        itemImage.x = origSlot.x + 20;
-                        itemImage.y = origSlot.y + 20;
+                        itemImage.x = origSlot.x + (origSlot.width / 2);
+                        itemImage.y = origSlot.y + (origSlot.height / 2);
                     }
                 });
     
