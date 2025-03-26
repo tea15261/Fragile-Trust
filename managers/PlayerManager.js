@@ -64,6 +64,19 @@ export default class PlayerManager {
         // Add a flag to check if the shop is open
         this.shopOpen = false;
 
+        this.itemDescriptions = {
+            "Ember-Touched Band": "A warm-toned ring with a subtle glow.",
+            "Gilded Topaz Ring": "A gold ring set with a brilliant topaz gem.",
+            "Carved Bone Loop": "A ring crafted from bone, featuring intricate carvings.",
+            "Duskworn Ring": "A faded silver ring with a darkened center.",
+            "Moonlit Band": "A smooth silver ring that catches the light.",
+            "Spiral-Engraved Ring": "A silver band marked with a mysterious swirl.",
+            "Weathered Bronze Band": "A rugged ring with a worn texture.",
+            "Crimson Crest Ring": "A gold ring set with a deep red stone.",
+            "Azure Jewel Band": "A silver ring adorned with a bright blue gem.",
+            "Verdant Inlay Ring": "A dark band featuring a rich green stone."
+        };
+
         this.init();
     }
 
@@ -378,34 +391,101 @@ export default class PlayerManager {
         
     }
 
+    createTooltip(itemKey, x, y) {
+        // Destroy any existing tooltip
+        if (this.tooltip) {
+            this.tooltip.destroy();
+            this.tooltip = null;
+        }
+    
+        // Get the description for the item
+        const description = this.itemDescriptions[itemKey] || "No description available.";
+    
+        // Create the tooltip background
+        const padding = 10;
+        const tooltipBg = this.scene.add.graphics();
+        tooltipBg.fillStyle(0x000000, 0.8);
+        tooltipBg.fillRoundedRect(0, 0, 200, 60, 8);
+    
+        // Create the item name text
+        const nameText = this.scene.add.text(10, 5, itemKey, {
+            fontSize: "14px",
+            fill: "#FFD700",
+            fontStyle: "bold"
+        });
+    
+        // Create the description text
+        const descriptionText = this.scene.add.text(10, 25, description, {
+            fontSize: "12px",
+            fill: "#FFFFFF",
+            wordWrap: { width: 180 }
+        });
+    
+        // Create a container for the tooltip
+        this.tooltip = this.scene.add.container(x, y, [tooltipBg, nameText, descriptionText]);
+    
+        // Adjust the background size to fit the text
+        const bgWidth = Math.max(nameText.width, descriptionText.width) + padding * 2;
+        const bgHeight = nameText.height + descriptionText.height + padding * 2;
+        tooltipBg.clear();
+        tooltipBg.fillStyle(0x000000, 0.8);
+        tooltipBg.fillRoundedRect(0, 0, bgWidth, bgHeight, 8);
+    
+        // Adjust the position of the text
+        nameText.setPosition(padding, padding);
+        descriptionText.setPosition(padding, nameText.height + padding);
+
+        this.tooltip.setDepth(9);
+    }
+    
+    destroyTooltip() {
+        if (this.tooltip) {
+            this.tooltip.destroy();
+            this.tooltip = null;
+        }
+    }
+
     updateInventoryDisplay() {
         // Clear previous item images
         this.inventoryItemsGroup.removeAll(true);
-        // For each slot, if an item exists, add its image.
+    
+        // For each slot, if an item exists, add its image
         this.inventorySlots.forEach(slot => {
             const itemData = this.inventoryData[slot.index];
             if (itemData) {
-                // Place the item image centered in the slot.
+                // Place the item image centered in the slot
                 const itemImage = this.scene.add.image(slot.x + 20, slot.y + 20, itemData.key)
                     .setDisplaySize(40, 40)
                     .setOrigin(0.5);
-                // Store slot index for drag-drop management.
+    
+                // Store slot index for drag-drop management
                 itemImage.slotIndex = slot.index;
                 itemImage.setInteractive({ draggable: true });
-                // Drag events:
-                itemImage.on('dragstart', (pointer) => {
+    
+                // Add hover events for the tooltip
+                itemImage.on("pointerover", (pointer) => {
+                    this.createTooltip(itemData.key, pointer.x + 10, pointer.y + 10);
+                });
+    
+                itemImage.on("pointerout", () => {
+                    this.destroyTooltip();
+                });
+    
+                // Drag events
+                itemImage.on("dragstart", (pointer) => {
                     itemImage.originalX = itemImage.x;
                     itemImage.originalY = itemImage.y;
                 });
-                itemImage.on('drag', (pointer, dragX, dragY) => {
+    
+                itemImage.on("drag", (pointer, dragX, dragY) => {
                     itemImage.x = dragX;
                     itemImage.y = dragY;
                 });
-                itemImage.on('dragend', (pointer, dragX, dragY) => {
-                    // Determine if dropped over a valid slot.
+    
+                itemImage.on("dragend", (pointer, dragX, dragY) => {
+                    // Determine if dropped over a valid slot
                     let foundSlot = null;
                     this.inventorySlots.forEach(s => {
-                        // Convert slot position to world coordinates.
                         const worldX = this.inventoryContainer.x + s.x;
                         const worldY = this.inventoryContainer.y + s.y;
                         if (dragX >= worldX && dragX <= worldX + s.width &&
@@ -413,26 +493,29 @@ export default class PlayerManager {
                             foundSlot = s;
                         }
                     });
+    
                     if (foundSlot && this.inventoryData[foundSlot.index] == null) {
-                        // Move item to new slot.
+                        // Move item to new slot
                         this.inventoryData[foundSlot.index] = this.inventoryData[itemImage.slotIndex];
                         this.inventoryData[itemImage.slotIndex] = null;
                         itemImage.slotIndex = foundSlot.index;
                         itemImage.x = foundSlot.x + 20;
                         itemImage.y = foundSlot.y + 20;
                     } else {
-                        // Revert position.
+                        // Revert position
                         const origSlot = this.inventorySlots[itemImage.slotIndex];
                         itemImage.x = origSlot.x + 20;
                         itemImage.y = origSlot.y + 20;
                     }
                 });
+    
                 this.inventoryItemsGroup.add(itemImage);
-                // If count > 1, add a count label on top-right.
+    
+                // If count > 1, add a count label on top-right
                 if (itemData.count > 1) {
                     const countText = this.scene.add.text(slot.x + 35, slot.y + 5, `${itemData.count}`, {
-                        fontSize: '16px',
-                        fill: '#ffffff'
+                        fontSize: "16px",
+                        fill: "#ffffff"
                     }).setOrigin(1, 0);
                     this.inventoryItemsGroup.add(countText);
                 }
