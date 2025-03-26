@@ -425,6 +425,7 @@ export default class BattleManager {
                       lootItems.push(item);
                       // Add items to inventory and update localStorage
                       this.playerManager.addInventoryItem(item);
+                      this.playerManager.inventory.push(item);
                       localStorage.setItem('inventory', JSON.stringify(this.playerManager.inventory));
                       console.log("Player received:", item);
                   }
