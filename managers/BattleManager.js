@@ -423,20 +423,46 @@ export default class BattleManager {
                   for (let i = 0; i < totalDrops; i++) {
                       let item = Phaser.Utils.Array.GetRandom(possibleItems);
                       lootItems.push(item);
-                      // Add items to inventory
-                      this.playerManager.inventory.push(item);
+                      // Add items to inventory and update localStorage
+                      this.playerManager.addInventoryItem(item);
                       localStorage.setItem('inventory', JSON.stringify(this.playerManager.inventory));
                       console.log("Player received:", item);
                   }
 
-                  // Display the loot on the victory screen
-                  let lootTextStr = "Loot: " + (lootItems.length > 0 ? lootItems.join(", ") : "None");
-                  const lootText = this.scene.add.text(320, 260, lootTextStr, {
-                      fontSize: "20px",
-                      fill: "#FFD700",
-                      fontStyle: "bold"
-                  }).setOrigin(0.5);
-                  victoryContainer.add(lootText);
+                  // Remove the loot text display and instead show images
+                  // We'll create a loot container that is centered under the victory panel
+                  if (lootItems.length > 0) {
+                      const columns = Math.min(lootItems.length, 4);  // Maximum 4 items per row
+                      const itemSize = 40;  // Desired display size for each loot image
+                      const spacing = 10;   // Spacing between items
+                      const gridWidth = columns * itemSize + (columns - 1) * spacing;
+                      const rows = Math.ceil(lootItems.length / columns);
+                      const totalHeight = rows * itemSize + (rows - 1) * spacing;
+
+                      // Create a container for loot and center it at (320, 260)
+                      const lootContainer = this.scene.add.container(320, 260);
+                      // Loop over loot items and add each image
+                      for (let i = 0; i < lootItems.length; i++) {
+                          const col = i % columns;
+                          const row = Math.floor(i / columns);
+                          // Calculate x,y such that the grid is centered
+                          const x = -gridWidth / 2 + col * (itemSize + spacing) + itemSize / 2;
+                          const y = -totalHeight / 2 + row * (itemSize + spacing) + itemSize / 2;
+                          const lootImage = this.scene.add.image(x, y, lootItems[i])
+                              .setDisplaySize(itemSize, itemSize)
+                              .setOrigin(0.5);
+                          lootContainer.add(lootImage);
+                      }
+                      victoryContainer.add(lootContainer);
+                  } else {
+                      // If no loot was won, display a "Loot: None" text (optional)
+                      const lootText = this.scene.add.text(320, 260, "Loot: None", {
+                          fontSize: "20px",
+                          fill: "#FFD700",
+                          fontStyle: "bold"
+                      }).setOrigin(0.5);
+                      victoryContainer.add(lootText);
+                  }
 
                   // After battle, refill temporary battle stats:
                   this.playerManager.stats.health = 1000;
