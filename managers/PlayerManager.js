@@ -39,7 +39,7 @@ export default class PlayerManager {
             coins: 1000,
             attack: 75,
             speed: 160,
-            luck: 40,
+            luck: 100,
             agility: 80
         };
 
@@ -56,6 +56,10 @@ export default class PlayerManager {
         this.inventory = localStorage.getItem('inventory')
             ? JSON.parse(localStorage.getItem('inventory'))
             : [];
+
+        this.inventoryData = localStorage.getItem('inventoryData')
+            ? JSON.parse(localStorage.getItem('inventoryData'))
+            : new Array(15).fill(null); // 15 available slots
 
         // Add a flag to check if the shop is open
         this.shopOpen = false;
@@ -135,6 +139,32 @@ export default class PlayerManager {
         console.log("Inventory has been reset:", this.inventory);
     }
 
+    resetInventory() {
+        // Clear persistent inventory data
+        localStorage.removeItem('inventory');
+        localStorage.removeItem('inventoryData');
+        // Reset model data
+        this.inventory = [];
+        this.inventoryData = new Array(15).fill(null);
+        // Update the visuals
+        this.updateInventoryDisplay();
+        console.log("Inventory has been reset:", this.inventory);
+    }
+    
+    resetCoinStat() {
+        // Reset coins to default (e.g. 1000)
+        const defaultStats = {
+            coins: 1000,
+            attack: this.stats.attack,
+            speed: this.stats.speed,
+            luck: this.stats.luck,
+            agility: this.stats.agility
+        };
+        this.stats.coins = defaultStats.coins;
+        localStorage.setItem('playerPersistentStats', JSON.stringify(defaultStats));
+        console.log("Coin stat has been reset:", this.stats.coins);
+    }
+
     initInventory() {
         const inventoryCols = 5;
         const inventoryRows = 3;
@@ -161,35 +191,45 @@ export default class PlayerManager {
         );
         inventoryBg.setOrigin(0.5, 0.5);
         inventoryBg.setStrokeStyle(2, 0x787276);
+        this.inventoryContainer.add(inventoryBg);
     
+        // Create grid cells and store slot info.
+        this.inventorySlots = [];
         for (let row = 0; row < inventoryRows; row++) {
             for (let col = 0; col < inventoryCols; col++) {
                 const cellX = col * (cellSize + spacing);
                 const cellY = row * (cellSize + spacing);
-                const cell = this.scene.add.rectangle(
-                    cellX,
-                    cellY,
-                    cellSize,
-                    cellSize,
-                    0x808080
-                );
+                const cell = this.scene.add.rectangle(cellX, cellY, cellSize, cellSize, 0x808080);
                 cell.setOrigin(0, 0);
                 cell.setStrokeStyle(2, 0xffffff);
-    
                 cell.setInteractive();
-    
                 cell.on('pointerover', () => {
-                    cell.setFillStyle(0xb3b3b3); 
-                    cell.setStrokeStyle(2, 0xff0000); 
+                    cell.setFillStyle(0xb3b3b3);
+                    cell.setStrokeStyle(2, 0xff0000);
                 });
                 cell.on('pointerout', () => {
-                    cell.setFillStyle(0x808080); 
-                    cell.setStrokeStyle(2, 0xffffff); 
+                    cell.setFillStyle(0x808080);
+                    cell.setStrokeStyle(2, 0xffffff);
                 });
-    
                 this.inventoryContainer.add(cell);
+                // Store slot data. (You can use an arbitrary offset so items appear centered within the cell.)
+                this.inventorySlots.push({
+                    x: cellX,
+                    y: cellY,
+                    width: cellSize,
+                    height: cellSize,
+                    index: row * inventoryCols + col
+                });
             }
         }
+    
+        // (The rest of your inventory code for hotbar, coin pouch, etc. remains here.)
+        // …
+        // Create a container to hold inventory item images.
+        this.inventoryItemsGroup = this.scene.add.container(0, 0);
+        this.inventoryContainer.add(this.inventoryItemsGroup);
+        // Initially update the visual display.
+        this.updateInventoryDisplay();
     
         const hotbarSlot = this.scene.add.rectangle(
             inventoryWidth / 2 - cellSize / 2,
@@ -213,7 +253,7 @@ export default class PlayerManager {
             hotbarSlot.setStrokeStyle(2, 0xffff00); 
         });
     
-        this.inventoryContainer.add([inventoryBg, hotbarSlot]);
+        this.inventoryContainer.add([hotbarSlot]);
     
         // Add coin pouch icon
         const coinPouchX = inventoryWidth / 2 + cellSize / 2 + spacing + 2;
@@ -338,6 +378,90 @@ export default class PlayerManager {
         
     }
 
+    updateInventoryDisplay() {
+        // Clear previous item images
+        this.inventoryItemsGroup.removeAll(true);
+        // For each slot, if an item exists, add its image.
+        this.inventorySlots.forEach(slot => {
+            const itemData = this.inventoryData[slot.index];
+            if (itemData) {
+                // Place the item image centered in the slot.
+                const itemImage = this.scene.add.image(slot.x + 20, slot.y + 20, itemData.key)
+                    .setDisplaySize(40, 40)
+                    .setOrigin(0.5);
+                // Store slot index for drag-drop management.
+                itemImage.slotIndex = slot.index;
+                itemImage.setInteractive({ draggable: true });
+                // Drag events:
+                itemImage.on('dragstart', (pointer) => {
+                    itemImage.originalX = itemImage.x;
+                    itemImage.originalY = itemImage.y;
+                });
+                itemImage.on('drag', (pointer, dragX, dragY) => {
+                    itemImage.x = dragX;
+                    itemImage.y = dragY;
+                });
+                itemImage.on('dragend', (pointer, dragX, dragY) => {
+                    // Determine if dropped over a valid slot.
+                    let foundSlot = null;
+                    this.inventorySlots.forEach(s => {
+                        // Convert slot position to world coordinates.
+                        const worldX = this.inventoryContainer.x + s.x;
+                        const worldY = this.inventoryContainer.y + s.y;
+                        if (dragX >= worldX && dragX <= worldX + s.width &&
+                            dragY >= worldY && dragY <= worldY + s.height) {
+                            foundSlot = s;
+                        }
+                    });
+                    if (foundSlot && this.inventoryData[foundSlot.index] == null) {
+                        // Move item to new slot.
+                        this.inventoryData[foundSlot.index] = this.inventoryData[itemImage.slotIndex];
+                        this.inventoryData[itemImage.slotIndex] = null;
+                        itemImage.slotIndex = foundSlot.index;
+                        itemImage.x = foundSlot.x + 20;
+                        itemImage.y = foundSlot.y + 20;
+                    } else {
+                        // Revert position.
+                        const origSlot = this.inventorySlots[itemImage.slotIndex];
+                        itemImage.x = origSlot.x + 20;
+                        itemImage.y = origSlot.y + 20;
+                    }
+                });
+                this.inventoryItemsGroup.add(itemImage);
+                // If count > 1, add a count label on top-right.
+                if (itemData.count > 1) {
+                    const countText = this.scene.add.text(slot.x + 35, slot.y + 5, `${itemData.count}`, {
+                        fontSize: '16px',
+                        fill: '#ffffff'
+                    }).setOrigin(1, 0);
+                    this.inventoryItemsGroup.add(countText);
+                }
+            }
+        });
+    }
+
+    addInventoryItem(itemKey) {
+        // Check for stacking—if the item exists in a slot, increase its count.
+        for (let i = 0; i < this.inventoryData.length; i++) {
+            let slot = this.inventoryData[i];
+            if (slot && slot.key === itemKey) {
+                slot.count++;
+                this.updateInventoryDisplay();
+                localStorage.setItem('inventoryData', JSON.stringify(this.inventoryData));
+                return;
+            }
+        }
+        // Otherwise, find the next empty slot.
+        let emptyIndex = this.inventoryData.findIndex(s => s === null);
+        if (emptyIndex !== -1) {
+            this.inventoryData[emptyIndex] = { key: itemKey, count: 1 };
+            this.updateInventoryDisplay();
+            localStorage.setItem('inventoryData', JSON.stringify(this.inventoryData));
+        } else {
+            console.log("Inventory full!");
+        }
+    }
+
     toggleInventory() {
         // Prevent inventory access if the shop is open
         if (this.shopOpen) return;
@@ -376,9 +500,11 @@ export default class PlayerManager {
             console.log("Owned Skills:", this.ownedSkills);
         }
 
+        // In PlayerManager.js update()
         if (Phaser.Input.Keyboard.JustDown(this.resetKey)) {
             this.resetOwnedSkills();
             this.resetInventory();
+            this.resetCoinStat();
         }
 
         if (this.skillTreeUI && this.skillTreeUI.skillTreeContainer && this.skillTreeUI.skillTreeContainer.visible) {
