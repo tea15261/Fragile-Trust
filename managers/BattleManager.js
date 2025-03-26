@@ -392,14 +392,20 @@ export default class BattleManager {
                   // Add coins to the player's stat.
                   this.playerManager.stats.coins += rewardValue;
                   
-                  // Determine loot drops.
+                  // Determine loot drops based on luck
                   let baseDrops = Phaser.Math.Between(0, 2);
-                  let extraDrops = 0;
-                  if (this.playerManager.stats.luck > 50) {
-                      extraDrops = Math.floor((this.playerManager.stats.luck - 50) / 10);
+
+                  // Calculate the chance of getting no loot based on luck
+                  // The chance decreases as luck increases, but never reaches 0
+                  const luckFactor = this.playerManager.stats.luck;
+                  const noLootChance = Math.max(0.33 * Math.exp(-luckFactor / 100), 0.05); // Minimum 5% chance of no loot
+
+                  // Roll for loot
+                  let totalDrops = 0;
+                  if (Math.random() > noLootChance) {
+                      totalDrops = baseDrops + Math.floor(luckFactor / 50); // Extra drops for high luck
                   }
-                  const totalDrops = baseDrops + extraDrops;
-                  
+
                   const possibleItems = [
                       "Ember-Touched Band",
                       "Gilded Topaz Ring",
@@ -412,17 +418,18 @@ export default class BattleManager {
                       "Azure Jewel Band",
                       "Verdant Inlay Ring"
                   ];
+
                   let lootItems = [];
                   for (let i = 0; i < totalDrops; i++) {
                       let item = Phaser.Utils.Array.GetRandom(possibleItems);
                       lootItems.push(item);
-                      // After adding items to inventory, for example in BattleManager.endBattle():
+                      // Add items to inventory
                       this.playerManager.inventory.push(item);
                       localStorage.setItem('inventory', JSON.stringify(this.playerManager.inventory));
                       console.log("Player received:", item);
                   }
-                  
-                  // Display the loot on the victory screen.
+
+                  // Display the loot on the victory screen
                   let lootTextStr = "Loot: " + (lootItems.length > 0 ? lootItems.join(", ") : "None");
                   const lootText = this.scene.add.text(320, 260, lootTextStr, {
                       fontSize: "20px",
