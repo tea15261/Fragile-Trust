@@ -14,6 +14,17 @@ export default class PreloadManager {
 
         // item assets
         scene.load.image('coinPouch', 'assets/items/coin-pouch.png');
+        scene.load.image('Ember-Touched Band', 'assets/items/Ember-Touched Band.png');
+        scene.load.image('Gilded Topaz Ring', 'assets/items/Gilded Topaz Ring.png');
+        scene.load.image('Carved Bone Loop', 'assets/items/Carved Bone Loop.png');
+        scene.load.image('Duskworn Ring', 'assets/items/Duskworn Ring.png');
+        scene.load.image('Moonlit Band', 'assets/items/Moonlit Band.png');
+        scene.load.image('Spiral-Engraved Ring', 'assets/items/Spiral-Engraved Ring.png');
+        scene.load.image('Weathered Bronze Band', 'assets/items/Weathered Bronze Band.png');
+        scene.load.image('Crimson Crest Ring', 'assets/items/Crimson Crest Ring.png');
+        scene.load.image('Azure Jewel Band', 'assets/items/Azure Jewel Band.png');
+        scene.load.image('Verdant Inlay Ring', 'assets/items/Verdant Inlay Ring.png');
+
         
         // environment assets
         scene.load.image('forest', 'assets/environment/forest-backdrop.png');
