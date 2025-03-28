@@ -11,123 +11,132 @@ export default class ShopManager {
 
         const screenWidth = this.scene.cameras.main.width;
         const screenHeight = this.scene.cameras.main.height;
-
-        // Create a semi-transparent black box with rounded corners
+        
         const shopBg = this.scene.add.graphics();
         shopBg.fillStyle(0x000000, 0.8);
         shopBg.fillRoundedRect(50, 50, screenWidth - 100, screenHeight - 100, 20);
         shopBg.lineStyle(2, 0xffffff, 0.8);
         shopBg.strokeRoundedRect(50, 50, screenWidth - 100, screenHeight - 100, 20);
 
-        // Display the amount of coins in the top left corner
         const coinText = this.scene.add.text(
-            70,
-            70,
+            66,
+            75,
             `Coins: ${this.playerManager.stats.coins}`,
-            { fontSize: '24px', fill: '#FFD700', fontFamily: 'Arial', fontStyle: 'bold' }
+            { fontSize: '22px', fill: '#FFD700', fontFamily: 'Arial', fontStyle: 'bold' }
         );
 
-        // Create a container to hold the shop UI elements
         this.shopContainer = this.scene.add.container(0, 0, [shopBg, coinText]);
 
-        // Create a container for tab headers inside shopContainer.
-        // Position these relative to shopContainer (which already holds the shopBg and coinText).
-        const tabContainer = this.scene.add.container(60, 80);
+        const boxMargin = 10; 
+        const boxWidth = screenWidth - 120; 
+        const boxHeight = 227;
+        const boxX = 50 + boxMargin; 
+        const boxY = 150 - boxMargin - 30; 
+        const contentBox = this.scene.add.graphics();
+        contentBox.lineStyle(3, 0xffffff, 0.8);
+        contentBox.strokeRoundedRect(0, 0, boxWidth, boxHeight, 10);
 
-        // (Optional) If you need a background for the header, you can add one here.
-        // In this case, we leave it transparent so it blends with the shop box.
+        const contentBoxContainer = this.scene.add.container(boxX, boxY, [contentBox]);
+        contentBoxContainer.setDepth(9);
 
-        // Helper function to create a clickable tab that looks like a chrome tab using dark colors.
-        const createTabButton = (label, x, width) => {
-            // Create a container and explicitly set its size.
-            const buttonContainer = this.scene.add.container(x, 0);
-            buttonContainer.setSize(width, 30);
-            
-            // Create a rectangle as the button background.
-            const buttonBg = this.scene.add.rectangle(0, 0, width, 30, 0x222222, 0.7)
-                .setOrigin(0, 0);
-            
-            // (Optional) Use a Graphics object to draw a border.
-            const borderGraphics = this.scene.add.graphics();
-            borderGraphics.lineStyle(2, 0xaaaaaa, 1);
-            borderGraphics.strokeRoundedRect(0, 0, width, 30, 5);
-            
-            // Create the text using your desired style.
-            const buttonText = this.scene.add.text(width / 2, 15, label, {
+        const tabWidth = 120;
+        const tabHeight = 50;
+        const tabGap = 5;
+        const tabX = screenWidth - (tabWidth * 3 + tabGap * 2) - 60;
+        const tabY = 100 - boxMargin - 30;
+        const tabContainer = this.scene.add.container(tabX, tabY);
+
+        const createTabButton = (label, x) => {
+            const tabBg = this.scene.add.graphics();
+            tabBg.fillStyle(0x222222, 0.7);
+            tabBg.fillRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 });
+            tabBg.lineStyle(2, 0xffffff, 0.8);
+            tabBg.strokeRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 });
+
+            const tabText = this.scene.add.text(tabWidth / 2, tabHeight / 2, label, {
                 fontSize: '16px',
-                fill: '#FFD700',
+                fill: '#FFD700', 
                 fontFamily: 'Arial',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
-            // Add all elements to the container.
-            buttonContainer.add([buttonBg, borderGraphics, buttonText]);
-            
-            // Set an interactive hit area exactly matching the container:
-            buttonBg.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, 30), Phaser.Geom.Rectangle.Contains);
-            buttonBg.on('pointerover', () => { buttonBg.setFillStyle(0x333333, 0.9); });
-            buttonBg.on('pointerout', () => { buttonBg.setFillStyle(0x222222, 0.7); });
 
-            
-            return buttonContainer;
+            const tabContainer = this.scene.add.container(x, 0, [tabBg, tabText]);
+            tabBg.setInteractive(new Phaser.Geom.Rectangle(0, 0, tabWidth, tabHeight), Phaser.Geom.Rectangle.Contains);
+
+            tabBg.on('pointerover', () => tabBg.clear().fillStyle(0x333333, 0.9).fillRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 }).strokeRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 }));
+            tabBg.on('pointerout', () => tabBg.clear().fillStyle(0x222222, 0.7).fillRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 }).strokeRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 }));
+
+            return tabContainer;
         };
 
-        const tabWidth = 120;
-        const tabMargin = 10;
-        const tabBuy = createTabButton("Buy", 0, tabWidth);
-        const tabSell = createTabButton("Sell", tabWidth + tabMargin, tabWidth);
-        const tabLucky = createTabButton("The Lucky Mug", (tabWidth + tabMargin) * 2, tabWidth);
+        const tabBuy = createTabButton("Buy", 0);
+        const tabSell = createTabButton("Sell", tabWidth + tabGap);
+        const tabLucky = createTabButton("The Lucky Mug", (tabWidth + tabGap) * 2);
+
         tabContainer.add([tabBuy, tabSell, tabLucky]);
-        
 
-        // Create a container for the tab content panels inside the shop container.
-        const contentContainer = this.scene.add.container(0, 40);
-        const contentWidth = screenWidth - 120;
-        const contentHeight = screenHeight - 150;
-
-        // Create content containers for each tab.
         const buyContent = this.scene.add.container(10, 10);
         const sellContent = this.scene.add.container(10, 10);
         const luckyContent = this.scene.add.container(10, 10);
 
-        // Add filler text (using dark-themed colors so no white backgrounds appear)
         const fillerStyle = { fontSize: '20px', fill: '#FFD700', fontFamily: 'Arial', fontStyle: 'bold' };
-        const buyText = this.scene.add.text(0, 0, "Buy items here...", fillerStyle);
-        buyContent.add(buyText);
-        const sellText = this.scene.add.text(0, 0, "Sell your items here...", fillerStyle);
-        sellContent.add(sellText);
-        const luckyText = this.scene.add.text(0, 0, "The Lucky Mug contents...", fillerStyle);
-        luckyContent.add(luckyText);
+        buyContent.add(this.scene.add.text(0, 0, "Placeholder for buying", fillerStyle));
+        sellContent.add(this.scene.add.text(0, 0, "Placeholder for selling", fillerStyle));
+        luckyContent.add(this.scene.add.text(0, 0, "Placeholder for gambling", fillerStyle));
 
-        // Initially show only Buy content
         buyContent.setVisible(true);
         sellContent.setVisible(false);
         luckyContent.setVisible(false);
 
-        // Add the content containers to the content container.
-        contentContainer.add([buyContent, sellContent, luckyContent]);
+        contentBoxContainer.add([buyContent, sellContent, luckyContent]);
 
-        // Add both the tab headers and the content containers to the shop container.
-        this.shopContainer.add([tabContainer, contentContainer]);
+        contentBox.strokeRoundedRect(
+            0,
+            0,
+            boxWidth,
+            boxHeight,
+            { tl: 10, tr: 0, bl: 10, br: 10 } 
+        );
 
-        // Event handlers to switch tabs.
-        tabBuy.on('pointerdown', () => {
-            buyContent.setVisible(true);
-            sellContent.setVisible(false);
-            luckyContent.setVisible(false);
-        });
-        tabSell.on('pointerdown', () => {
-            buyContent.setVisible(false);
-            sellContent.setVisible(true);
-            luckyContent.setVisible(false);
-        });
-        tabLucky.on('pointerdown', () => {
-            buyContent.setVisible(false);
-            sellContent.setVisible(false);
-            luckyContent.setVisible(true);
-        });
+        const setActiveTab = (activeTab, activeContent) => {
+            [tabBuy, tabSell, tabLucky].forEach((tab, index) => {
+                const bg = tab.getAt(0); 
+                const text = tab.getAt(1); 
+        
+                if (index === activeTab) {
+                    bg.clear();
+                    bg.fillStyle(0xffffff, 1); 
+                    bg.fillRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 });
+                    bg.strokeRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 });
+                    text.setFill('#ff0000');
+        
+                    this.scene.time.delayedCall(100, () => {
+                        bg.clear();
+                        bg.fillStyle(0x222222, 0.7); 
+                        bg.fillRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 });
+                        bg.strokeRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 });
+                    });
 
-        // Add key listener to exit the shop menu
+                } else {
+                    bg.clear();
+                    bg.fillStyle(0x222222, 0.7); 
+                    bg.fillRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 });
+                    bg.strokeRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 });
+                    text.setFill('#FFD700'); 
+                }
+            });
+        
+            buyContent.setVisible(activeContent === 0);
+            sellContent.setVisible(activeContent === 1);
+            luckyContent.setVisible(activeContent === 2);
+        };
+
+        tabBuy.getAt(0).on('pointerdown', () => setActiveTab(0, 0));
+        tabSell.getAt(0).on('pointerdown', () => setActiveTab(1, 1));
+        tabLucky.getAt(0).on('pointerdown', () => setActiveTab(2, 2));
+
+        this.shopContainer.add([contentBoxContainer, tabContainer]);
+
         this.keyE = this.scene.input.keyboard.addKey('E');
         this.keyE.on('down', () => {
             if (this.playerManager.shopOpen) {
@@ -135,7 +144,6 @@ export default class ShopManager {
             }
         });
 
-        // Prevent inventory access while the shop is open
         this.playerManager.shopOpen = true;
     }
 
@@ -147,10 +155,8 @@ export default class ShopManager {
         this.scene.physics.resume();
         this.scene.anims.resumeAll();
 
-        // Teleport the player 30 pixels below the shop hitbox
         this.playerManager.player.y = 150;
         console.log("Teleport");
-        // Allow inventory access again after a short delay
         this.scene.time.delayedCall(200, () => {
             this.playerManager.shopOpen = false;
         });
