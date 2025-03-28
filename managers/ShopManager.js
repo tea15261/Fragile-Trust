@@ -1,4 +1,8 @@
+let pinnedItem = null;
+let isSliderDragging = false;
+
 export default class ShopManager {
+    
     constructor(scene, playerManager) {
         this.scene = scene;
         this.playerManager = playerManager;
@@ -76,12 +80,322 @@ export default class ShopManager {
         tabContainer.add([tabBuy, tabSell, tabLucky]);
 
         const buyContent = this.scene.add.container(10, 10);
+
+        // Create the sellContent container
         const sellContent = this.scene.add.container(10, 10);
+        sellContent.setSize(boxWidth, boxHeight);
+
+        // Dimensions for the grid area on the left
+        const gridAreaWidth = 300; // Left panel width
+        const gridAreaHeight = boxHeight - 40; // Adjusted height to fit better
+        const slotGap = 10; // Gap between slots
+        const cols = 5; // Number of columns
+        const rows = 3; // Number of rows
+        const slotSize = Math.floor((gridAreaWidth - (cols + 1) * slotGap) / cols); // Dynamically calculate slot size
+        const gridX = 0;
+        const gridY = 0;
+
+        // Left Panel: Inventory Grid (sells items)
+        const gridContainer = this.scene.add.container(gridX, gridY);
+
+        // Draw a background for the grid that matches the shop color theme
+        const gridBg = this.scene.add.graphics();
+        gridBg.fillStyle(0x222222, 0.7);
+        gridBg.fillRoundedRect(0, 0, gridAreaWidth, gridAreaHeight+20, 10);
+        gridContainer.add(gridBg);
+
+        // Create inventory slots (assuming playerManager.inventory is an array)
+        this.playerManager.inventory.forEach((item, index) => {
+            const row = 5;
+            const col = 4;
+            if (row >= rows) return; // Limit to 3 rows
+            const slotX = slotGap + col * (slotSize + slotGap);
+            const slotY = slotGap + row * (slotSize + slotGap);
+
+            // Draw slot background
+            const slotBg = this.scene.add.rectangle(slotX, slotY, slotSize, slotSize, 0x444444, 0.8)
+                .setOrigin(0, 0)
+                .setStrokeStyle(2, 0xffffff);
+            gridContainer.add(slotBg);
+
+            // Add a horizontal separator line under the slot (exact replica of barrier style)
+            const separator = this.scene.add.rectangle(
+                slotX,                 // starting at the left edge of the slot
+                slotY + slotSize,      // at the bottom edge of the slot
+                slotSize,              // same width as the slot
+                2,                     // thickness of 2 pixels (adjust if needed)
+                0x333333               // same color as barrier
+            ).setOrigin(0, 0);
+            gridContainer.add(separator);
+
+            // If there is an item, display its icon and amount
+            if (item) {
+                // Add the item icon
+                const itemIcon = this.scene.add.image(slotX + slotSize / 2, slotY + slotSize / 2, item.key)
+                    .setDisplaySize(slotSize - 10, slotSize - 10)
+                    .setOrigin(0.5);
+                itemIcon.setInteractive();
+
+                // Add the item amount text
+                const itemAmount = this.scene.add.text(
+                    slotX + slotSize - 5, // Position near bottom-right corner of the slot
+                    slotY + slotSize - 5,
+                    `${item.amount}`,
+                    {
+                        fontSize: '14px',
+                        fill: '#FFFFFF',
+                        fontFamily: 'Arial',
+                        fontStyle: 'bold',
+                        align: 'right'
+                    }
+                ).setOrigin(1, 1);
+                gridContainer.add([itemIcon, itemAmount]);
+
+                // Add hover events to update the right panel
+                itemIcon.on('pointerover', () => {
+                    // If no item is pinned, update details on hover.
+                    if (!pinnedItem) {
+                        updateSellRightDetail(item);
+                    }
+                    // If a different item is hovered while one is pinned,
+                    // unpin the current one and update the details.
+                    else if (pinnedItem.key !== item.key) {
+                        pinnedItem = null;
+                        updateSellRightDetail(item);
+                    }
+                });
+                itemIcon.on('pointerdown', () => {
+                    // When the item is clicked, pin it so details remain.
+                    pinnedItem = item;
+                    updateSellRightDetail(item);
+                });
+                itemIcon.on('pointerout', (pointer) => {
+                    // Only clear details if nothing is pinned, not dragging, and pointer is not over right panel.
+                    if (!pinnedItem && !isSliderDragging) {
+                        // rightDetail is positioned at (rightPanelX, 0) with size (rightPanelWidth, rightPanelHeight)
+                        if (
+                            pointer.worldX < rightPanelX || 
+                            pointer.worldX > rightPanelX + rightPanelWidth ||
+                            pointer.worldY < 0 ||
+                            pointer.worldY > rightPanelHeight
+                        ) {
+                            updateSellRightDetail(null);
+                        }
+                    }
+                });
+            }
+        });
+
+        // Vertical Barrier (thin dark grey line, not touching top and bottom)
+        const barrierHeight = gridAreaHeight - 40; // Reduced height to not touch top and bottom
+        const barrier = this.scene.add.rectangle(gridAreaWidth + 15, 100, 2, barrierHeight, 0x333333);
+
+        // Right Panel: Item Detail
+        const rightPanelX = gridAreaWidth + 30;
+        const rightPanelWidth = boxWidth - rightPanelX - 20;
+        const rightPanelHeight = gridAreaHeight+20;
+        const rightDetail = this.scene.add.container(rightPanelX, 0);
+
+        const dynamicDetailContainer = this.scene.add.container(0, 0);
+        rightDetail.add(dynamicDetailContainer);
+
+        const detailBg = this.scene.add.graphics();
+        detailBg.fillStyle(0x222222, 0.7);
+        detailBg.fillRoundedRect(0, 0, rightPanelWidth, rightPanelHeight, 10);
+        rightDetail.add(detailBg);
+
+        // Add both panels and the barrier to sellContent
+        sellContent.add([gridContainer, barrier, rightDetail]);
+
+        // Function to update the right detail panel based on the hovered item
+        const updateSellRightDetail = (item) => {
+            // Clear only the dynamic container so static elements remain intact.
+            dynamicDetailContainer.removeAll(true);
+
+            if (item) {
+                // Get the description from PlayerManager's itemDescriptions.
+                const description = this.playerManager.itemDescriptions[item.key] || "No description available.";
+
+                // Reserve space for our slider.
+                const sliderReservedHeight = 40; // space reserved at bottom
+                const contentHeight = rightPanelHeight - sliderReservedHeight;
+
+                // Create item title
+                const nameText = this.scene.add.text(rightPanelWidth / 2, 10, item.key, {
+                    fontSize: '16px',
+                    fill: '#FFD700',
+                    fontFamily: 'Arial',
+                    fontStyle: 'bold',
+                    align: 'center',
+                    wordWrap: { width: rightPanelWidth - 20 }
+                }).setOrigin(0.5, 0);
+
+                // Create item image
+                const itemImage = this.scene.add.image(rightPanelWidth / 2, 40, item.key)
+                    .setDisplaySize(60, 60)
+                    .setOrigin(0.5, 0);
+
+                // Create description text
+                const descriptionText = this.scene.add.text(rightPanelWidth / 2, 110, description, {
+                    fontSize: '12px',
+                    fill: '#FFFFFF',
+                    fontFamily: 'Arial',
+                    align: 'center',
+                    wordWrap: { width: rightPanelWidth - 20 }
+                }).setOrigin(0.5, 0);
+
+                // Dynamically adjust the description's font size if needed.
+                const descriptionMaxHeight = contentHeight - (itemImage.y + itemImage.displayHeight + 10);
+                if (descriptionText.height > descriptionMaxHeight) {
+                    descriptionText.setFontSize(10);
+                }
+
+                // ----- Create the real slider -----
+                // Define slider dimensions
+                const sliderWidth = rightPanelWidth - 40; // leave margins on both sides
+                const sliderX = rightPanelWidth / 2 - sliderWidth / 2;
+                // Place slider a bit under the descriptionText
+                const sliderY = rightPanelHeight - sliderReservedHeight + 5; 
+
+                // Create slider track (a simple line)
+                const sliderTrack = this.scene.add.rectangle(sliderX, sliderY, sliderWidth, 4, 0xaaaaaa)
+                    .setOrigin(0, 0.5);
+
+                // Create slider knob (a circle) - starting at the left
+                const knob = this.scene.add.circle(sliderX, sliderY, 10, 0xffffff)
+                    .setInteractive();
+                this.scene.input.setDraggable(knob);
+
+                // Create numeric value text below slider
+                const valueText = this.scene.add.text(rightPanelWidth / 2, sliderY + 20, "0", {
+                    fontSize: '14px',
+                    fill: '#ffffff',
+                    fontFamily: 'Arial',
+                    align: 'center'
+                }).setOrigin(0.5, 0);
+
+                // Drag handler for knob
+                knob.on('drag', (pointer, dragX, dragY) => {
+                    isSliderDragging = true;   // Set flag
+                    // Clamp knob's x between sliderX and sliderX + sliderWidth
+                    dragX = Phaser.Math.Clamp(dragX, sliderX, sliderX + sliderWidth);
+                    knob.x = dragX;
+
+                    // Calculate slider value, snapping to the nearest integer.
+                    let percent = (knob.x - sliderX) / sliderWidth;
+                    let sliderValue = Math.round(percent * item.amount);
+                    valueText.setText(sliderValue);
+                });
+
+                // On drag end, set flag back to false and snap knob exactly.
+                knob.on('dragend', () => {
+                    isSliderDragging = false;  // Clear flag when done dragging
+                    let percent = (knob.x - sliderX) / sliderWidth;
+                    let sliderValue = Math.round(percent * item.amount);
+                    let newX = sliderX + (sliderValue / item.amount) * sliderWidth;
+                    knob.x = newX;
+                    valueText.setText(sliderValue);
+                });
+
+                // ----- End slider creation -----
+
+                // Add all dynamic elements to the container
+                dynamicDetailContainer.add([nameText, itemImage, descriptionText, sliderTrack, knob, valueText]);
+            } else {
+                // Add "No item selected" text dynamically
+                const noSelectText = this.scene.add.text(rightPanelWidth / 2, rightPanelHeight / 2, "No item selected", {
+                    fontSize: '20px',
+                    fill: '#FFD700',
+                    fontFamily: 'Arial',
+                    fontStyle: 'bold',
+                    align: 'center',
+                    wordWrap: { width: rightPanelWidth - 20, useAdvancedWrap: true }
+                }).setOrigin(0.5);
+                dynamicDetailContainer.add(noSelectText);
+            }
+
+            // Bring the dynamic container to the top so it overlays static elements.
+            rightDetail.bringToTop(dynamicDetailContainer);
+        };
+
+        // Function to update the sell grid
+        const updateSellGrid = () => {
+            // Remove previous item images without destroying gridBg
+            gridContainer.removeAll(false);
+            // Re-add the grid background (it was not destroyed)
+            gridContainer.add(gridBg);
+            
+            // Loop over each slot (assuming the sell grid uses the same inventoryData array)
+            this.playerManager.inventoryData.forEach((itemData, index) => {
+                if (!itemData) return; // Skip empty slots
+
+                // Calculate cell position using the defined grid layout
+                const row = Math.floor(index / cols);
+                const col = index % cols;
+                if (row >= rows) return;  // Limit grid to defined rows
+                const slotX = slotGap + col * (slotSize + slotGap);
+                const slotY = slotGap + row * (slotSize + slotGap);
+                
+                // Create the item image centered in the slot
+                const itemImage = this.scene.add.image(
+                    slotX + slotSize / 2,
+                    slotY + slotSize / 2,
+                    itemData.key
+                )
+                    .setDisplaySize(slotSize - 10, slotSize - 10)
+                    .setOrigin(0.5);
+                itemImage.slotIndex = index;
+                itemImage.setInteractive({ draggable: true });
+                
+                // Add pointer events (reusing updateSellRightDetail)
+                itemImage.on("pointerover", (pointer) => {
+                    // If no item is pinned, update details on hover.
+                    if (!pinnedItem) {
+                        updateSellRightDetail(itemData);
+                    }
+                    // If a different item is hovered while one is pinned,
+                    // unpin the current one and update the details.
+                    else if (pinnedItem.key !== itemData.key) {
+                        pinnedItem = null;
+                        updateSellRightDetail(itemData);
+                    }
+                });
+                itemImage.on("pointerdown", () => {
+                    // When the item is clicked, pin it so details remain.
+                    pinnedItem = itemData;
+                    updateSellRightDetail(itemData);
+                });
+                itemImage.on("pointerout", () => {
+                    // Only clear details if nothing is pinned.
+                    if (!pinnedItem) {
+                        updateSellRightDetail(null);
+                    }
+                });
+                gridContainer.add(itemImage);
+                
+                // If count > 1, display the count
+                if (itemData.count > 1) {
+                    const countText = this.scene.add.text(
+                        slotX + slotSize - 5,
+                        slotY + 5,
+                        `${itemData.count}`,
+                        {
+                            fontSize: "16px",
+                            fill: "#ffffff"
+                        }
+                    ).setOrigin(1, 0);
+                    gridContainer.add(countText);
+                }
+            });
+        };
+
+        // Finally, add sellContent to the shop container:
+        this.shopContainer.add(sellContent);
+
         const luckyContent = this.scene.add.container(10, 10);
 
         const fillerStyle = { fontSize: '20px', fill: '#FFD700', fontFamily: 'Arial', fontStyle: 'bold' };
         buyContent.add(this.scene.add.text(0, 0, "Placeholder for buying", fillerStyle));
-        sellContent.add(this.scene.add.text(0, 0, "Placeholder for selling", fillerStyle));
         luckyContent.add(this.scene.add.text(0, 0, "Placeholder for gambling", fillerStyle));
 
         buyContent.setVisible(true);
@@ -145,6 +459,9 @@ export default class ShopManager {
         });
 
         this.playerManager.shopOpen = true;
+
+        // Call updateSellGrid after setting up the sell grid
+        updateSellGrid();
     }
 
     closeShop() {
