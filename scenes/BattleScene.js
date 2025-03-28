@@ -23,7 +23,7 @@ export default class BattleScene extends Phaser.Scene {
         this.cursors = this.input.keyboard.createCursorKeys();
         this.input.setDefaultCursor('none');
 
-        // initialize MonsterManager.
+        // Initialize MonsterManager.
         this.monsterManager = new MonsterManager(this, this.playerManager);
         this.monsterManager.generateNewMonster();
 
@@ -47,17 +47,28 @@ export default class BattleScene extends Phaser.Scene {
 
         this.createObstacles();
 
-        // battle start collision box.
+        // Battle start collision box.
         this.battleStart = this.physics.add.staticGroup();
         this.battleStart.create(350, 200, null)
             .setSize(10, 300)
             .setOrigin(0, 0)
             .setVisible(false);
 
-        // when the player overlaps, display the battle UI.
+        // When the player overlaps, display the battle UI and create the rectangle.
         this.physics.add.overlap(this.playerManager.player, this.battleStart, () => {
-            if (this.battleManager) {
+            if (this.battleManager && !this.battleUIShown) {
                 this.battleManager.displayBattleUI();
+                this.battleUIShown = true;
+
+                // Create the rectangle when overlapping with battleStart
+                const rectangle = this.physics.add.staticGroup();
+                rectangle.create(378, 180, null)
+                    .setSize(10, 400)
+                    .setOrigin(0, 0)
+                    .setVisible(false);
+
+                // Add collision between the player and the new rectangle
+                this.physics.add.collider(this.playerManager.player, rectangle);
             }
         }, null, this);
 
@@ -82,7 +93,7 @@ export default class BattleScene extends Phaser.Scene {
             { x: 320, y: 182, width: 800, height: 10 },  // mid top wall
             { x: 320, y: 222, width: 800, height: 10 },  // mid bottom wall
             { x: 115, y: 180, width: 10, height: 400 },   // left wall
-            { x: 340, y: 180, width: 10, height: 400 },   // mob boundary wall
+            { x: 340, y: 180, width: 10, height: 400 },   // mob boundary wal
             { x: 320, y: 330, width: 800, height: 10 },   // bottom wall
         ];
         console.log(this.monsterManager.stats());
