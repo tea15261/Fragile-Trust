@@ -9,7 +9,7 @@ const config = {
     physics: {  
         default: 'arcade',
         arcade: {
-            debug: true // collision debugging
+            debug: false // collision debugging
         }
     },
     scene: [TavernScene, ForestScene, BattleScene], 
