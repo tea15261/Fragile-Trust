@@ -225,8 +225,6 @@ export default class ShopManager {
             this.playerManager.inventoryData.forEach((itemData, index) => {
                 if (!itemData) return; // Skip empty slots
 
-                
-
                 // Calculate cell position using the defined grid layout
                 const row = Math.floor(index / cols);
                 const col = index % cols;
