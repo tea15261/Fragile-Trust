@@ -115,7 +115,7 @@ export default class ShopManager {
             // Draw slot background
             const slotBg = this.scene.add.rectangle(slotX, slotY, slotSize, slotSize, 0x444444, 0.8)
                 .setOrigin(0, 0)
-                .setStrokeStyle(2, 0xffffff);
+                .setStrokeStyle(2, 0xFF0000);
             gridContainer.add(slotBg);
 
             // Add a horizontal separator line under the slot (exact replica of barrier style)
@@ -123,8 +123,8 @@ export default class ShopManager {
                 slotX,                 // starting at the left edge of the slot
                 slotY + slotSize,      // at the bottom edge of the slot
                 slotSize,              // same width as the slot
-                2,                     // thickness of 2 pixels (adjust if needed)
-                0x333333               // same color as barrier
+                10,                     // thickness of 2 pixels (adjust if needed)
+                0xFF0000               // same color as barrier
             ).setOrigin(0, 0);
             gridContainer.add(separator);
 
@@ -152,29 +152,25 @@ export default class ShopManager {
                 gridContainer.add([itemIcon, itemAmount]);
 
                 // Add hover events to update the right panel
+                // When hovering over the inventory item, update the detail panel only if nothing is pinned.
                 itemIcon.on('pointerover', () => {
-                    // If no item is pinned, update details on hover.
                     if (!pinnedItem) {
                         updateSellRightDetail(item);
                     }
-                    // If a different item is hovered while one is pinned,
-                    // unpin the current one and update the details.
-                    else if (pinnedItem.key !== item.key) {
-                        pinnedItem = null;
-                        updateSellRightDetail(item);
-                    }
                 });
+
+                // When clicking an item, lock it in (pin it) so that its details remain.
                 itemIcon.on('pointerdown', () => {
-                    // When the item is clicked, pin it so details remain.
                     pinnedItem = item;
                     updateSellRightDetail(item);
                 });
+
+                // When leaving an inventory item, clear the details only if nothing is pinned and not dragging.
                 itemIcon.on('pointerout', (pointer) => {
-                    // Only clear details if nothing is pinned, not dragging, and pointer is not over right panel.
                     if (!pinnedItem && !isSliderDragging) {
-                        // rightDetail is positioned at (rightPanelX, 0) with size (rightPanelWidth, rightPanelHeight)
+                        // Check if pointer is not over the right panel.
                         if (
-                            pointer.worldX < rightPanelX || 
+                            pointer.worldX < rightPanelX ||
                             pointer.worldX > rightPanelX + rightPanelWidth ||
                             pointer.worldY < 0 ||
                             pointer.worldY > rightPanelHeight
@@ -250,57 +246,8 @@ export default class ShopManager {
                     descriptionText.setFontSize(10);
                 }
 
-                // ----- Create the real slider -----
-                // Define slider dimensions
-                const sliderWidth = rightPanelWidth - 40; // leave margins on both sides
-                const sliderX = rightPanelWidth / 2 - sliderWidth / 2;
-                // Place slider a bit under the descriptionText
-                const sliderY = rightPanelHeight - sliderReservedHeight + 5; 
-
-                // Create slider track (a simple line)
-                const sliderTrack = this.scene.add.rectangle(sliderX, sliderY, sliderWidth, 4, 0xaaaaaa)
-                    .setOrigin(0, 0.5);
-
-                // Create slider knob (a circle) - starting at the left
-                const knob = this.scene.add.circle(sliderX, sliderY, 10, 0xffffff)
-                    .setInteractive();
-                this.scene.input.setDraggable(knob);
-
-                // Create numeric value text below slider
-                const valueText = this.scene.add.text(rightPanelWidth / 2, sliderY + 20, "0", {
-                    fontSize: '14px',
-                    fill: '#ffffff',
-                    fontFamily: 'Arial',
-                    align: 'center'
-                }).setOrigin(0.5, 0);
-
-                // Drag handler for knob
-                knob.on('drag', (pointer, dragX, dragY) => {
-                    isSliderDragging = true;   // Set flag
-                    // Clamp knob's x between sliderX and sliderX + sliderWidth
-                    dragX = Phaser.Math.Clamp(dragX, sliderX, sliderX + sliderWidth);
-                    knob.x = dragX;
-
-                    // Calculate slider value, snapping to the nearest integer.
-                    let percent = (knob.x - sliderX) / sliderWidth;
-                    let sliderValue = Math.round(percent * item.amount);
-                    valueText.setText(sliderValue);
-                });
-
-                // On drag end, set flag back to false and snap knob exactly.
-                knob.on('dragend', () => {
-                    isSliderDragging = false;  // Clear flag when done dragging
-                    let percent = (knob.x - sliderX) / sliderWidth;
-                    let sliderValue = Math.round(percent * item.amount);
-                    let newX = sliderX + (sliderValue / item.amount) * sliderWidth;
-                    knob.x = newX;
-                    valueText.setText(sliderValue);
-                });
-
-                // ----- End slider creation -----
-
                 // Add all dynamic elements to the container
-                dynamicDetailContainer.add([nameText, itemImage, descriptionText, sliderTrack, knob, valueText]);
+                dynamicDetailContainer.add([nameText, itemImage, descriptionText]);
             } else {
                 // Add "No item selected" text dynamically
                 const noSelectText = this.scene.add.text(rightPanelWidth / 2, rightPanelHeight / 2, "No item selected", {
