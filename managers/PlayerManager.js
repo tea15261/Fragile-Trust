@@ -1,4 +1,5 @@
 import { SkillManager, SkillTreeUI } from '/managers/SkillManager.js';
+import LootManager from '/managers/LootManager.js';
 export default class PlayerManager {
     constructor(scene, inBattle = false) {
         this.scene = scene;
@@ -16,6 +17,9 @@ export default class PlayerManager {
         this.radarLabels = [];
         this.statTexts = [];
         this.inventoryButton = null;
+
+        // Create an instance of LootManager to handle item descriptions (and future loot functions).
+        this.lootManager = new LootManager(this.scene);
 
         this.skillManager = new SkillManager();
         const savedSkills = localStorage.getItem('ownedSkills');
@@ -37,7 +41,7 @@ export default class PlayerManager {
             coins: 1000, 
             attack: 75, 
             speed: 160, 
-            luck: 60, 
+            luck: 200, 
             agility: 80 
         };
 
@@ -74,19 +78,6 @@ export default class PlayerManager {
 
         // Add a flag to check if the shop is open
         this.shopOpen = false;
-
-        this.itemDescriptions = {
-            "Ember-Touched Band": "A warm-toned ring with a subtle glow.",
-            "Gilded Topaz Ring": "A gold ring set with a brilliant topaz gem.",
-            "Carved Bone Loop": "A ring crafted from bone, featuring intricate carvings.",
-            "Duskworn Ring": "A faded silver ring with a darkened center.",
-            "Moonlit Band": "A smooth silver ring that catches the light.",
-            "Spiral-Engraved Ring": "A silver band marked with a mysterious swirl.",
-            "Weathered Bronze Band": "A rugged ring with a worn texture.",
-            "Crimson Crest Ring": "A gold ring set with a deep red stone.",
-            "Azure Jewel Band": "A silver ring adorned with a bright blue gem.",
-            "Verdant Inlay Ring": "A dark band featuring a rich green stone."
-        };
 
         this.init();
     }
@@ -166,7 +157,7 @@ export default class PlayerManager {
           coins: 1000,
           attack: 75,
           speed: 160,
-          luck: 60,
+          luck: 200,
           agility: 80
         };
         this.stats.coins = defaultStats.coins;
@@ -274,13 +265,13 @@ export default class PlayerManager {
         const coinPouchY = inventoryHeight + hotbarYOffset + 8;
         const defaultScale = 1.9;
         const coinPouch = this.scene.add.image(coinPouchX, coinPouchY, 'coinPouch');
-        
+
         coinPouch.setDisplaySize(cellSize, cellSize);
         coinPouch.setScale(defaultScale);
         coinPouch.setOrigin(0, 0);
         coinPouch.setInteractive();
     
-        // Add coin text
+        /// Add coin text and assign to this.coinText for global update.
         const coinText = this.scene.add.text(
             coinPouchX + cellSize + 10,
             coinPouchY + cellSize / 2,
@@ -288,6 +279,8 @@ export default class PlayerManager {
             { fontSize: '16px', fill: '#FFD700', fontFamily: 'Arial', fontStyle: 'bold' }
         ).setOrigin(0, 0.5);
         coinText.setVisible(false);
+        // Save coinText to the player manager so ShopManager can update it.
+        this.coinText = coinText;
     
         coinPouch.on('pointerover', () => {
             // Increase scale relative to the default (e.g., 10% larger than default)
@@ -453,8 +446,8 @@ export default class PlayerManager {
             this.tooltip = null;
         }
     
-        // Get the description for the item
-        const description = this.itemDescriptions[itemKey] || "No description available.";
+        // Get the description for the item from LootManager
+        const description = this.lootManager.getDescription(itemKey) || "No description available.";
     
         // Create the tooltip background
         const padding = 10;
@@ -489,7 +482,7 @@ export default class PlayerManager {
         // Adjust the position of the text
         nameText.setPosition(padding, padding);
         descriptionText.setPosition(padding, nameText.height + padding);
-
+    
         this.tooltip.setDepth(9);
     }
     
