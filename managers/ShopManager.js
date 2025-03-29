@@ -333,15 +333,11 @@ export default class ShopManager {
                     
                     // Only process if there is a sell value and an item is selected.
                     if (currentSellValue > 0 && item) {
-                        console.log("Before removal, item count:", item.count);
-                        // Deduct the sell value from the local item copy
-                        item.count = item.count - currentSellValue;
-                        console.log("After subtraction, local item count:", item.count);
-                        
-                        // Call PlayerManager.removeInventoryItem() with debug logs inside it.
+                        console.log("Calling removeInventoryItem for", item.key, "with amount", currentSellValue);
+                        // Let removeInventoryItem handle subtraction and removal.
                         this.playerManager.removeInventoryItem(item.key, currentSellValue);
                         
-                        // Look up the item again in the inventory (it may now be an object or not exist)
+                        // Look up the item again; if it’s gone, updatedItem is undefined.
                         let updatedItem = this.playerManager.inventory.find(invItem => {
                             if (typeof invItem === "object") return invItem.key === item.key;
                             else return invItem === item.key;

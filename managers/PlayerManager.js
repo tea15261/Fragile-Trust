@@ -161,12 +161,6 @@ export default class PlayerManager {
     }
 
     resetInventory() {
-        localStorage.removeItem('inventory');
-        this.inventory = [];
-        console.log("Inventory has been reset:", this.inventory);
-    }
-
-    resetInventory() {
         // Clear persistent inventory data
         localStorage.removeItem('inventory');
         localStorage.removeItem('inventoryData');
@@ -407,34 +401,54 @@ export default class PlayerManager {
 
     removeInventoryItem(itemKey, amount) {
         console.log("removeInventoryItem() called. itemKey:", itemKey, "amount to remove:", amount);
-        for (let i = 0; i < this.inventory.length && amount > 0; i++) {
+        let remaining = amount;
+    
+        // Update the main inventory array:
+        for (let i = 0; i < this.inventory.length && remaining > 0; i++) {
             let invItem = this.inventory[i];
-            console.log("Checking inventory at index", i, ":", invItem);
-            // If the item is stored as an object with a count
+            // if item stored as an object:
             if (typeof invItem === "object" && invItem.key === itemKey) {
-                if (invItem.count > amount) {
-                    console.log("Subtracting", amount, "from object at index", i, "Old count:", invItem.count);
-                    invItem.count -= amount;
-                    amount = 0;
-                    console.log("New count:", invItem.count);
+                if (invItem.count > remaining) {
+                    console.log("Subtracting", remaining, "from inventory object at index", i, "old count:", invItem.count);
+                    invItem.count -= remaining;
+                    remaining = 0;
                 } else {
-                    console.log("Removing entire object at index", i, "with count:", invItem.count);
-                    amount -= invItem.count;
+                    console.log("Removing entire inventory object at index", i, "with count:", invItem.count);
+                    remaining -= invItem.count;
                     this.inventory.splice(i, 1);
                     i--; // adjust index after removal
-                    console.log("Inventory after removal:", JSON.stringify(this.inventory));
                 }
             }
-            // If the item is stored just as a string
+            // if item stored as a string:
             else if (typeof invItem === "string" && invItem === itemKey) {
-                console.log("Removing string item at index", i);
+                console.log("Removing string inventory item at index", i);
                 this.inventory.splice(i, 1);
-                amount--;
+                remaining--;
                 i--;
-                console.log("Inventory after removal:", JSON.stringify(this.inventory));
             }
         }
-        console.log("Final inventory after removal:", JSON.stringify(this.inventory));
+        console.log("Final inventory:", JSON.stringify(this.inventory));
+        
+        // Reset remaining for inventoryData update.
+        remaining = amount;
+        // Update the visual inventoryData array:
+        for (let i = 0; i < this.inventoryData.length && remaining > 0; i++) {
+            let dataItem = this.inventoryData[i];
+            if (!dataItem) continue;
+            if (dataItem.key === itemKey) {
+                if (dataItem.count > remaining) {
+                    console.log("Subtracting", remaining, "from visual entry at index", i, "old count:", dataItem.count);
+                    dataItem.count -= remaining;
+                    remaining = 0;
+                } else {
+                    console.log("Removing visual entry at index", i, "with count:", dataItem.count);
+                    remaining -= dataItem.count;
+                    this.inventoryData.splice(i, 1);
+                    i--; // adjust index after removal
+                }
+            }
+        }
+        console.log("Final inventoryData:", JSON.stringify(this.inventoryData));
         localStorage.setItem('inventory', JSON.stringify(this.inventory));
     }
 
