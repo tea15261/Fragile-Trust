@@ -1,5 +1,6 @@
 let pinnedItem = null;
 let isSliderDragging = false;
+let currentSellValue = 0;
 
 export default class ShopManager {
     
@@ -233,20 +234,138 @@ export default class ShopManager {
                     dragX = Phaser.Math.Clamp(dragX, sliderTrackX, sliderTrackX + sliderTrackWidth);
                     knob.x = dragX;
                     const value = Math.round(((dragX - sliderTrackX) / sliderTrackWidth) * maxValue);
+                    currentSellValue = value;
                     sliderValueText.setText(value);
+                    updateSellButtonVisibility(value); // Update button visibility
                 });
 
                 // Snap knob on drag end so it lines up exactly with the nearest increment
                 knob.on('dragend', () => {
                     const percent = (knob.x - sliderTrackX) / sliderTrackWidth;
                     const value = Math.round(percent * maxValue);
+                    currentSellValue = value;
                     const newX = sliderTrackX + (value / maxValue) * sliderTrackWidth;
                     knob.x = newX;
                     sliderValueText.setText(value);
+                    updateSellButtonVisibility(value); // Update button visibility
                 });
 
                 // Add the slider elements to the dynamic detail container.
                 dynamicDetailContainer.add([sliderTrack, knob, sliderValueText]);
+
+                // Create a "Sell" button below the slider
+                const sellButtonWidth = 100;
+                const sellButtonHeight = 30;
+                const sellButtonX = rightPanelWidth / 2 - sellButtonWidth / 2;
+                const sellButtonY = sliderTrackY + 27; // Position below the slider
+
+                // Button background
+                const sellButtonBg = this.scene.add.graphics();
+                sellButtonBg.fillStyle(0xFFD700, 1); // Gold color
+                sellButtonBg.fillRoundedRect(sellButtonX, sellButtonY, sellButtonWidth, sellButtonHeight, 5);
+                sellButtonBg.lineStyle(2, 0xFFFFFF, 1); // White border
+                sellButtonBg.strokeRoundedRect(sellButtonX, sellButtonY, sellButtonWidth, sellButtonHeight, 5);
+                sellButtonBg.setInteractive(new Phaser.Geom.Rectangle(sellButtonX, sellButtonY, sellButtonWidth, sellButtonHeight), Phaser.Geom.Rectangle.Contains);
+                sellButtonBg.setVisible(false); // Initially hidden
+
+                // Button text
+                const sellButtonText = this.scene.add.text(
+                    sellButtonX + sellButtonWidth / 2,
+                    sellButtonY + sellButtonHeight / 2,
+                    "Sell",
+                    {
+                        fontSize: "16px",
+                        fill: "#000000", // Black text
+                        fontFamily: "Arial",
+                        fontStyle: "bold",
+                        align: "center"
+                    }
+                ).setOrigin(0.5, 0.5);
+                sellButtonText.setVisible(false); // Initially hidden
+
+                // Add the button elements to the dynamic detail container
+                dynamicDetailContainer.add([sellButtonBg, sellButtonText]);
+
+                // Update button visibility based on slider value
+                const updateSellButtonVisibility = (value) => {
+                    const isVisible = value > 0;
+                    sellButtonBg.setVisible(isVisible);
+                    sellButtonText.setVisible(isVisible);
+                };
+
+                // Add hover effect
+                sellButtonBg.on('pointerover', () => {
+                    sellButtonBg.clear();
+                    sellButtonBg.fillStyle(0xFFFACD, 1); // Lighter gold color on hover
+                    sellButtonBg.fillRoundedRect(sellButtonX, sellButtonY, sellButtonWidth, sellButtonHeight, 5);
+                    sellButtonBg.lineStyle(2, 0xFFFFFF, 1); // White border
+                    sellButtonBg.strokeRoundedRect(sellButtonX, sellButtonY, sellButtonWidth, sellButtonHeight, 5);
+                });
+
+                // Remove hover effect
+                sellButtonBg.on('pointerout', () => {
+                    sellButtonBg.clear();
+                    sellButtonBg.fillStyle(0xFFD700, 1); // Original gold color
+                    sellButtonBg.fillRoundedRect(sellButtonX, sellButtonY, sellButtonWidth, sellButtonHeight, 5);
+                    sellButtonBg.lineStyle(2, 0xFFFFFF, 1); // White border
+                    sellButtonBg.strokeRoundedRect(sellButtonX, sellButtonY, sellButtonWidth, sellButtonHeight, 5);
+                });
+
+                // Add click effect and selling logic
+                sellButtonBg.on('pointerdown', () => {
+                    console.log("Sell button clicked. currentSellValue:", currentSellValue, "selected item:", item);
+                    
+                    // Click visual effect
+                    sellButtonBg.clear();
+                    sellButtonBg.fillStyle(0xFFC107, 1);
+                    sellButtonBg.fillRoundedRect(sellButtonX, sellButtonY, sellButtonWidth, sellButtonHeight, 5);
+                    sellButtonBg.lineStyle(2, 0xFFFFFF, 1);
+                    sellButtonBg.strokeRoundedRect(sellButtonX, sellButtonY, sellButtonWidth, sellButtonHeight, 5);
+                    
+                    // Reset to default after delay
+                    this.scene.time.delayedCall(100, () => {
+                        sellButtonBg.clear();
+                        sellButtonBg.fillStyle(0xFFD700, 1);
+                        sellButtonBg.fillRoundedRect(sellButtonX, sellButtonY, sellButtonWidth, sellButtonHeight, 5);
+                        sellButtonBg.lineStyle(2, 0xFFFFFF, 1);
+                        sellButtonBg.strokeRoundedRect(sellButtonX, sellButtonY, sellButtonWidth, sellButtonHeight, 5);
+                    });
+                    
+                    // Only process if there is a sell value and an item is selected.
+                    if (currentSellValue > 0 && item) {
+                        console.log("Before removal, item count:", item.count);
+                        // Deduct the sell value from the local item copy
+                        item.count = item.count - currentSellValue;
+                        console.log("After subtraction, local item count:", item.count);
+                        
+                        // Call PlayerManager.removeInventoryItem() with debug logs inside it.
+                        this.playerManager.removeInventoryItem(item.key, currentSellValue);
+                        
+                        // Look up the item again in the inventory (it may now be an object or not exist)
+                        let updatedItem = this.playerManager.inventory.find(invItem => {
+                            if (typeof invItem === "object") return invItem.key === item.key;
+                            else return invItem === item.key;
+                        });
+                        console.log("Updated item after removal:", updatedItem);
+                        
+                        if (!updatedItem) {
+                            console.log("Item completely removed from inventory.");
+                            pinnedItem = null;
+                            updateSellRightDetail(null);
+                        } else {
+                            updateSellRightDetail(updatedItem);
+                        }
+                        
+                        console.log("Updating sell grid...");
+                        updateSellGrid();
+                        
+                        if (this.playerManager.updateInventoryDisplay) {
+                            console.log("Updating inventory display...");
+                            this.playerManager.updateInventoryDisplay();
+                        }
+                    }
+                });
+
             } else {
                 // If no item is selected, show the default message.
                 const noSelectText = this.scene.add.text(
@@ -271,10 +390,8 @@ export default class ShopManager {
 
         // Function to update the sell grid
         const updateSellGrid = () => {
-            // Remove previous item images without destroying gridBg
-            gridContainer.removeAll(false);
-            // Re-add the grid background (it was not destroyed)
-            gridContainer.add(gridBg);
+            // Completely remove (and destroy) previous children from gridContainer.
+            gridContainer.removeAll(true);
             
             // Dimensions for the grid area on the left
             const gridAreaWidth = 300; // Left panel width
@@ -283,6 +400,12 @@ export default class ShopManager {
             const rows = 3; // Number of rows
             const slotSize = Math.floor((gridAreaWidth - (cols + 1) * slotGap) / cols); // Dynamically calculate slot size
 
+            // Create a new gridBg
+            const newGridBg = this.scene.add.graphics();
+            newGridBg.fillStyle(0x222222, 0.7);
+            newGridBg.fillRoundedRect(0, 0, gridAreaWidth, gridAreaHeight + 20, 10);
+            gridContainer.add(newGridBg);
+            
             // Loop over each slot (assuming the sell grid uses the same inventory array)
             this.playerManager.inventory.forEach((item, index) => {
                 const row = Math.floor(index / cols);
@@ -302,17 +425,16 @@ export default class ShopManager {
                 gridContainer.add(horizontalLine);
             });
 
-            // Loop over each slot (assuming the sell grid uses the same inventoryData array)
+            // Loop over each slot (using the inventoryData array)
             this.playerManager.inventoryData.forEach((itemData, index) => {
                 if (!itemData) return; // Skip empty slots
 
-                // Calculate cell position using the defined grid layout
                 const row = Math.floor(index / cols);
                 const col = index % cols;
                 if (row >= rows) return;  // Limit grid to defined rows
                 const slotX = slotGap + col * (slotSize + slotGap);
                 const slotY = slotGap + row * (slotSize + slotGap);
-                
+
                 // Create the item image centered in the slot
                 const itemImage = this.scene.add.image(
                     slotX + slotSize / 2,
@@ -324,26 +446,20 @@ export default class ShopManager {
                 itemImage.slotIndex = index;
                 itemImage.setInteractive({ draggable: true });
                 
-                // Add pointer events (reusing updateSellRightDetail)
+                // Add pointer events (using updateSellRightDetail)
                 itemImage.on("pointerover", (pointer) => {
-                    // If no item is pinned, update details on hover.
                     if (!pinnedItem) {
                         updateSellRightDetail(itemData);
-                    }
-                    // If a different item is hovered while one is pinned,
-                    // unpin the current one and update the details.
-                    else if (pinnedItem.key !== itemData.key) {
+                    } else if (pinnedItem.key !== itemData.key) {
                         pinnedItem = null;
                         updateSellRightDetail(itemData);
                     }
                 });
                 itemImage.on("pointerdown", () => {
-                    // When the item is clicked, pin it so details remain.
                     pinnedItem = itemData;
                     updateSellRightDetail(itemData);
                 });
                 itemImage.on("pointerout", () => {
-                    // Only clear details if nothing is pinned.
                     if (!pinnedItem) {
                         updateSellRightDetail(null);
                     }
