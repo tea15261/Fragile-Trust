@@ -419,14 +419,15 @@ export default class ShopManager {
                         console.log("Calling removeInventoryItem for", item.key, "with amount", currentSellValue);
                         this.playerManager.removeInventoryItem(item.key, currentSellValue);
                         
-                        // Look up the item again. If it’s gone, updatedItem is undefined.
+                        // Look up the item again.
                         let updatedItem = this.playerManager.inventory.find(invItem => {
                             if (typeof invItem === "object") return invItem.key === item.key;
                             else return invItem === item.key;
                         });
                         console.log("Updated item after removal:", updatedItem);
                         
-                        if (!updatedItem) {
+                        // If no such item exists or its count is zero, unpin the item.
+                        if (!updatedItem || (updatedItem.count !== undefined && updatedItem.count === 0)) {
                             console.log("Item completely removed from inventory.");
                             pinnedItem = null;
                             updateSellRightDetail(null);
