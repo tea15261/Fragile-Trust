@@ -23,14 +23,42 @@ export default class ShopManager {
         shopBg.lineStyle(2, 0xffffff, 0.8);
         shopBg.strokeRoundedRect(50, 50, screenWidth - 100, screenHeight - 100, 20);
 
+        // Improved coin text style
         const coinText = this.scene.add.text(
             66,
             75,
             `Coins: ${this.playerManager.stats.coins}`,
-            { fontSize: '22px', fill: '#FFD700', fontFamily: 'Arial', fontStyle: 'bold' }
+            {
+                fontSize: '20px',
+                fill: '#FFCE00', // Brighter gold
+                fontFamily: 'Verdana',
+                fontStyle: 'bold',
+                stroke: '#000000',
+                strokeThickness: 2,
+                shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 2, stroke: true, fill: true }
+            }
         );
 
+        // Create the shop container BEFORE adding any elements to it.
         this.shopContainer = this.scene.add.container(0, 0, [shopBg, coinText]);
+
+        // Improved coin gain popup style
+        this.coinGainPopup = this.scene.add.text(
+            coinText.x + 75, 
+            coinText.y - 17, 
+            '', 
+            {
+                fontSize: '18px',
+                fill: '#00FF00',
+                fontFamily: 'Verdana',
+                fontStyle: 'bold',
+                stroke: '#000000',
+                strokeThickness: 2,
+                shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 2, stroke: true, fill: true }
+            }
+        ).setOrigin(0, 0);
+        this.coinGainPopup.setVisible(false);
+        this.shopContainer.add(this.coinGainPopup);
 
         const boxMargin = 10; 
         const boxWidth = screenWidth - 120; 
@@ -59,10 +87,13 @@ export default class ShopManager {
             tabBg.strokeRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 });
 
             const tabText = this.scene.add.text(tabWidth / 2, tabHeight / 2, label, {
-                fontSize: '16px',
-                fill: '#FFD700', 
-                fontFamily: 'Arial',
-                fontStyle: 'bold'
+                fontSize: '13px',
+                fill: '#FFCE00',
+                fontFamily: 'Verdana',
+                fontStyle: 'bold',
+                stroke: '#000000',
+                strokeThickness: 2,
+                shadow: { offsetX: 1, offsetY: 1, color: '#000', blur: 1 }
             }).setOrigin(0.5);
 
             const tabContainer = this.scene.add.container(x, 0, [tabBg, tabText]);
@@ -129,18 +160,17 @@ export default class ShopManager {
 
         // Function to update the right detail panel based on the hovered item
         const updateSellRightDetail = (item) => {
-            // Clear only the dynamic container so static elements remain intact.
+            // Clear dynamic container so static elements remain intact.
             dynamicDetailContainer.removeAll(true);
-
+        
             if (item) {
-                // Get the description from PlayerManager's itemDescriptions.
-                const description = this.playerManager.itemDescriptions[item.key] || "No description available.";
-
-                // Reserve space for our slider.
+                // Get description from LootManager.
+                const description = this.playerManager.lootManager.getDescription(item.key) || "No description available.";
+                // Reserve space for the slider.
                 const sliderReservedHeight = 40; // space reserved at bottom
                 const contentHeight = rightPanelHeight - sliderReservedHeight;
-
-                // Create item title
+        
+                // Create item title.
                 const nameText = this.scene.add.text(rightPanelWidth / 2, 10, item.key, {
                     fontSize: '16px',
                     fill: '#FFD700',
@@ -149,13 +179,19 @@ export default class ShopManager {
                     align: 'center',
                     wordWrap: { width: rightPanelWidth - 20 }
                 }).setOrigin(0.5, 0);
-
-                // Create item image
+        
+                // NEW: Create coin gain text below the title.
+                // Retrieve the price from LootManager.
+                const price = this.playerManager.lootManager.getPrice(item.key);
+                // Set initial sell quantity to 0 (or use currentSellValue if already set).
+                const initialSellQuantity = currentSellValue || 0;
+        
+                // Create item image.
                 const itemImage = this.scene.add.image(rightPanelWidth / 2, 40, item.key)
                     .setDisplaySize(60, 60)
                     .setOrigin(0.5, 0);
-
-                // Create description text
+        
+                // Create description text.
                 const descriptionText = this.scene.add.text(rightPanelWidth / 2, 110, description, {
                     fontSize: '12px',
                     fill: '#FFFFFF',
@@ -163,24 +199,22 @@ export default class ShopManager {
                     align: 'center',
                     wordWrap: { width: rightPanelWidth - 20 }
                 }).setOrigin(0.5, 0);
-
-                // Dynamically adjust the description's font size if needed.
+        
+                // Adjust description text size if needed.
                 const descriptionMaxHeight = contentHeight - (itemImage.y + itemImage.displayHeight + 10);
                 if (descriptionText.height > descriptionMaxHeight) {
                     descriptionText.setFontSize(10);
                 }
-
-                // Add item details to the dynamic container.
+        
+                // Add texts to the dynamic container.
                 dynamicDetailContainer.add([nameText, itemImage, descriptionText]);
-
-               
-
-                // Define slider track dimensions
+        
+                // Define slider track dimensions.
                 const sliderTrackWidth = rightPanelWidth - 40; // leave side margins
                 const sliderTrackX = rightPanelWidth / 2 - sliderTrackWidth / 2;
                 const sliderTrackY = rightPanelHeight - sliderReservedHeight + 10;
-
-                // Create the slider track with a slightly thicker line and shop color
+        
+                // Create the slider track.
                 const sliderTrack = this.scene.add.rectangle(
                     sliderTrackX,
                     sliderTrackY,
@@ -188,8 +222,8 @@ export default class ShopManager {
                     4,             // increased thickness for a nicer look
                     0x222222       // dark background matching the shop theme
                 ).setOrigin(0, 0.5);
-
-                // Create the slider knob as a vertical rectangle with a gold fill
+        
+                // Create the slider knob.
                 const knobWidth = 12;
                 const knobHeight = 24;
                 const knob = this.scene.add.rectangle(
@@ -201,45 +235,50 @@ export default class ShopManager {
                 ).setOrigin(0.5, 0.5);
                 knob.setInteractive();
                 this.scene.input.setDraggable(knob);
-
-                // Create a numeric label below the slider track
+        
+                // Create a numeric label below the slider track.
                 const sliderValueText = this.scene.add.text(
                     rightPanelWidth / 2,
                     sliderTrackY - 30,
-                    "0",
+                    `${currentSellValue}`,
                     { fontSize: '14px', fill: '#ffffff', fontFamily: 'Arial', align: 'center' }
                 ).setOrigin(0.5, 0);
-
-                // Use the item count as the slider's maximum value (default to 1 if not present)
+        
+                // Assume maxValue is determined by the item count (default to 1)
                 const maxValue = item.count || 1;
-
-                // --- Draw incremental tick marks on the slider track ---
+        
+                // Draw incremental tick marks on the slider track.
                 const tickCount = 5; // number of ticks (including endpoints)
                 for (let i = 0; i < tickCount; i++) {
                     const tickX = sliderTrackX + i * (sliderTrackWidth / (tickCount - 1));
-                    // Make endpoints slightly taller
                     const tickHeight = (i === 0 || i === tickCount - 1) ? 10 : 6;
                     const tick = this.scene.add.rectangle(
                         tickX,
                         sliderTrackY,
-                        2,              // tick width
+                        2,   // tick width
                         tickHeight,
                         0xFFD700       // using gold for tick marks
                     ).setOrigin(0.5, 0.5);
                     dynamicDetailContainer.add(tick);
                 }
-
-                // Drag event for the knob: update its x position and update the numeric value
+        
+                // Inside updateSellRightDetail, after setting up sliderTrack and knob:
                 knob.on('drag', (pointer, dragX) => {
                     dragX = Phaser.Math.Clamp(dragX, sliderTrackX, sliderTrackX + sliderTrackWidth);
                     knob.x = dragX;
                     const value = Math.round(((dragX - sliderTrackX) / sliderTrackWidth) * maxValue);
                     currentSellValue = value;
                     sliderValueText.setText(value);
-                    updateSellButtonVisibility(value); // Update button visibility
+                    // Update the global coin gain popup live.
+                    if (value > 0) {
+                        this.coinGainPopup.setText(`+${price * value}`);
+                        this.coinGainPopup.setVisible(true);
+                    } else {
+                        this.coinGainPopup.setVisible(false);
+                    }
+                    updateSellButtonVisibility(value); // Update button visibility.
                 });
 
-                // Snap knob on drag end so it lines up exactly with the nearest increment
                 knob.on('dragend', () => {
                     const percent = (knob.x - sliderTrackX) / sliderTrackWidth;
                     const value = Math.round(percent * maxValue);
@@ -247,10 +286,16 @@ export default class ShopManager {
                     const newX = sliderTrackX + (value / maxValue) * sliderTrackWidth;
                     knob.x = newX;
                     sliderValueText.setText(value);
-                    updateSellButtonVisibility(value); // Update button visibility
+                    if (value > 0) {
+                        this.coinGainPopup.setText(`+${price * value}`);
+                        this.coinGainPopup.setVisible(true);
+                    } else {
+                        this.coinGainPopup.setVisible(false);
+                    }
+                    updateSellButtonVisibility(value); // Update button visibility.
                 });
-
-                // Add the slider elements to the dynamic detail container.
+        
+                // Add slider elements to the dynamic detail container.
                 dynamicDetailContainer.add([sliderTrack, knob, sliderValueText]);
 
                 // Create a "Sell" button below the slider
@@ -322,7 +367,7 @@ export default class ShopManager {
                     sellButtonBg.lineStyle(2, 0xFFFFFF, 1);
                     sellButtonBg.strokeRoundedRect(sellButtonX, sellButtonY, sellButtonWidth, sellButtonHeight, 5);
                     
-                    // Reset to default after delay
+                    // Reset to default after a short delay
                     this.scene.time.delayedCall(100, () => {
                         sellButtonBg.clear();
                         sellButtonBg.fillStyle(0xFFD700, 1);
@@ -333,11 +378,48 @@ export default class ShopManager {
                     
                     // Only process if there is a sell value and an item is selected.
                     if (currentSellValue > 0 && item) {
+                        // 1. Update player's coins using LootManager price and sell quantity.
+                        const price = this.playerManager.lootManager.getPrice(item.key);
+                        const totalSaleValue = price * currentSellValue;
+                        this.playerManager.stats.coins += totalSaleValue;
+                        console.log("Player earned", totalSaleValue, "coins from sale.");
+
+                        // 2. Update localStorage for player's persistent stats.
+                        const persistentStats = {
+                            coins: this.playerManager.stats.coins,
+                            attack: this.playerManager.stats.attack,
+                            speed: this.playerManager.stats.speed,
+                            luck: this.playerManager.stats.luck,
+                            agility: this.playerManager.stats.agility
+                        };
+                        localStorage.setItem('playerPersistentStats', JSON.stringify(persistentStats));
+                        
+                        // 3. Animate and update the coin text in the shop UI.
+                        // Assume coinText is the text element in the shop that shows the coin count.
+                        coinText.setText(`Coins: ${this.playerManager.stats.coins}`);
+                        this.scene.tweens.add({
+                            targets: coinText,
+                            scale: { from: 1.2, to: 1 },
+                            duration: 300,
+                            ease: 'Power2'
+                        });
+
+                        // 4. Also update the coin display in the player's inventory coin pouch if available.
+                        if (this.playerManager.coinText) {
+                            this.playerManager.coinText.setText(`Coins: ${this.playerManager.stats.coins}`);
+                            this.scene.tweens.add({
+                                targets: this.playerManager.coinText,
+                                scale: { from: 1.2, to: 1 },
+                                duration: 300,
+                                ease: 'Power2'
+                            });
+                        }
+
+                        // 5. Proceed with removal of sold items from inventory.
                         console.log("Calling removeInventoryItem for", item.key, "with amount", currentSellValue);
-                        // Let removeInventoryItem handle subtraction and removal.
                         this.playerManager.removeInventoryItem(item.key, currentSellValue);
                         
-                        // Look up the item again; if it’s gone, updatedItem is undefined.
+                        // Look up the item again. If it’s gone, updatedItem is undefined.
                         let updatedItem = this.playerManager.inventory.find(invItem => {
                             if (typeof invItem === "object") return invItem.key === item.key;
                             else return invItem === item.key;
@@ -359,9 +441,29 @@ export default class ShopManager {
                             console.log("Updating inventory display...");
                             this.playerManager.updateInventoryDisplay();
                         }
+
+                        // Save the initial y position (set when the popup was created)
+                        const initialPopupY = coinText.y - 30;
+
+                        // Animate the coin gain popup: move up and fade out
+                        this.scene.tweens.add({
+                            targets: this.coinGainPopup,
+                            y: initialPopupY - 20, // move 20 pixels up
+                            alpha: 0,
+                            duration: 500,
+                            ease: 'Power2',
+                            onComplete: () => {
+                                this.coinGainPopup.setVisible(false);
+                                // Reset for future use:
+                                this.coinGainPopup.alpha = 1;
+                                this.coinGainPopup.y = initialPopupY;
+                            }
+                        });
                     }
                 });
 
+            // Note: When switching items (or pinning a new one), updateSellRightDetail() is called,
+                // so the coin gain text is re-created and reflects the new item's price.
             } else {
                 // If no item is selected, show the default message.
                 const noSelectText = this.scene.add.text(
@@ -379,8 +481,8 @@ export default class ShopManager {
                 ).setOrigin(0.5);
                 dynamicDetailContainer.add(noSelectText);
             }
-
-            // Bring the dynamic container to the top so it overlays static elements.
+        
+            // Ensure the dynamic detail container is on top.
             rightDetail.bringToTop(dynamicDetailContainer);
         };
 
@@ -402,24 +504,21 @@ export default class ShopManager {
             newGridBg.fillRoundedRect(0, 0, gridAreaWidth, gridAreaHeight + 20, 10);
             gridContainer.add(newGridBg);
             
-            // Loop over each slot (assuming the sell grid uses the same inventory array)
-            this.playerManager.inventory.forEach((item, index) => {
-                const row = Math.floor(index / cols);
-                const col = index % cols;
-                if (row >= rows) return; // Limit grid to defined rows
-                const slotX = slotGap + col * (slotSize + slotGap);
-                const slotY = slotGap + row * (slotSize + slotGap);
-
-                // Always add a small horizontal line underneath the slot
-                const horizontalLine = this.scene.add.rectangle(
-                    slotX + slotSize / 2, // Centered horizontally
-                    slotY + slotSize + 5, // Slightly below the slot
-                    slotSize - 12,        // Slightly shorter than the slot width
-                    2,                    // Thickness of the line
-                    0x333333              // Dark grey color
-                ).setOrigin(0.5, 0.5);
-                gridContainer.add(horizontalLine);
-            });
+            // Loop to add horizontal lines for every slot in a grid of 5 columns (cols) and 3 rows.
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const slotX = slotGap + col * (slotSize + slotGap);
+                    const slotY = slotGap + row * (slotSize + slotGap);
+                    const horizontalLine = this.scene.add.rectangle(
+                        slotX + slotSize / 2, // Centered horizontally in the slot.
+                        slotY + slotSize + 5, // Slightly below the slot.
+                        slotSize - 12,        // Slightly shorter than the slot width.
+                        2,                    // Thickness of the line.
+                        0x333333              // Dark grey color.
+                    ).setOrigin(0.5, 0.5);
+                    gridContainer.add(horizontalLine);
+                }
+            }
 
             // Loop over each slot (using the inventoryData array)
             this.playerManager.inventoryData.forEach((itemData, index) => {
