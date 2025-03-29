@@ -11,6 +11,14 @@ export default class ForestScene extends Phaser.Scene {
     }
 
     create(data) {
+
+        this.input.on('gameobjectover', (pointer, gameObject) => {
+            document.body.style.cursor = 'url("assets/cursor/hand_open.png"), pointer';
+        });
+        this.input.on('gameobjectout', (pointer, gameObject) => {
+            document.body.style.cursor = 'pointer';
+        });
+
         this.forestBackdrop = this.add.image(320, 200, 'forest').setScale(0.4);
         this.evilForestBackdrop = this.add.image(320, 200, 'evil-forest').setScale(0.4).setVisible(false);
         this.nightForestBackdrop = this.add.image(320, 200, 'night-forest').setScale(0.4).setVisible(false);

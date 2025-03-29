@@ -12,6 +12,18 @@ export default class TavernScene extends Phaser.Scene {
     }
 
     create() {
+
+        // Place this in your main scene’s create() method.
+        // When the pointer goes over any interactive object, switch to your custom open cursor.
+        this.input.on('gameobjectover', (pointer, gameObject) => {
+            document.body.style.cursor = 'url("assets/cursor/hand_open.png"), pointer';
+        });
+
+        // When the pointer leaves, revert to the default pointer.
+        this.input.on('gameobjectout', (pointer, gameObject) => {
+            document.body.style.cursor = 'pointer';
+        });
+
         const tavernBackdrop = this.add.image(320, 200, 'tavern'); 
         tavernBackdrop.setScale(0.22); 
         

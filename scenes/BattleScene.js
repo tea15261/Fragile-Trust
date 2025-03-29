@@ -13,6 +13,14 @@ export default class BattleScene extends Phaser.Scene {
     }
     
     create() {
+
+        this.input.on('gameobjectover', (pointer, gameObject) => {
+            document.body.style.cursor = 'url("assets/cursor/hand_open.png"), pointer';
+        });
+        this.input.on('gameobjectout', (pointer, gameObject) => {
+            document.body.style.cursor = 'pointer';
+        });
+
         this.add.image(320, 200, 'battle-scene').setScale(1.07, 0.6721);
         
         // Create the custom cursor first.
