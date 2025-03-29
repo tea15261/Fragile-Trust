@@ -67,13 +67,14 @@ export default class PlayerManager {
             agility: this.stats.agility,
             coins: this.stats.coins
         };
+
         this.inventory = localStorage.getItem('inventory')
             ? JSON.parse(localStorage.getItem('inventory'))
             : [];
 
         this.inventoryData = localStorage.getItem('inventoryData')
             ? JSON.parse(localStorage.getItem('inventoryData'))
-            : new Array(15).fill(null); // 15 available slots
+            : new Array(15).fill(null); // e.g., 15 available slots
 
         // Add a flag to check if the shop is open
         this.shopOpen = false;
@@ -154,37 +155,33 @@ export default class PlayerManager {
         }
     }
 
-    resetOwnedSkills() {
-        localStorage.removeItem('ownedSkills');
-        this.ownedSkills = [];
-        console.log("Owned Skills have been reset:", this.ownedSkills);
-    }
-
-    resetInventory() {
-        // Clear persistent inventory data
-        localStorage.removeItem('inventory');
-        localStorage.removeItem('inventoryData');
-        // Reset model data
+    resetAll() {
+        // Clear local storage
+        localStorage.clear();
+      
+        // Reset model data to default values
         this.inventory = [];
         this.inventoryData = new Array(15).fill(null);
-        // Update the visuals
-        this.updateInventoryDisplay();
-        console.log("Inventory has been reset:", this.inventory);
-    }
-    
-    resetCoinStat() {
-        // Reset coins to default (e.g. 1000)
+
+        this.ownedSkills = [];
+        
+        // Optionally reset other persistent stats (coins, skills, etc.)
         const defaultStats = {
-            coins: 1000,
-            attack: this.stats.attack,
-            speed: this.stats.speed,
-            luck: this.stats.luck,
-            agility: this.stats.agility
+          coins: 1000,
+          attack: this.stats.attack,
+          speed: this.stats.speed,
+          luck: this.stats.luck,
+          agility: this.stats.agility
         };
         this.stats.coins = defaultStats.coins;
         localStorage.setItem('playerPersistentStats', JSON.stringify(defaultStats));
-        console.log("Coin stat has been reset:", this.stats.coins);
-    }
+      
+        // Update the visual display so the reset persists across scenes.
+        if (this.updateInventoryDisplay) {
+          this.updateInventoryDisplay();
+        }
+        console.log("All persistent data has been reset.");
+      }
 
     initInventory() {
         const inventoryCols = 5;
@@ -450,6 +447,7 @@ export default class PlayerManager {
         }
         console.log("Final inventoryData:", JSON.stringify(this.inventoryData));
         localStorage.setItem('inventory', JSON.stringify(this.inventory));
+        localStorage.setItem('inventoryData', JSON.stringify(this.inventoryData));
     }
 
     createTooltip(itemKey, x, y) {
@@ -657,9 +655,7 @@ export default class PlayerManager {
 
         // In PlayerManager.js update()
         if (Phaser.Input.Keyboard.JustDown(this.resetKey)) {
-            this.resetOwnedSkills();
-            this.resetInventory();
-            this.resetCoinStat();
+            this.resetAll();
         }
 
         if (this.skillTreeUI && this.skillTreeUI.skillTreeContainer && this.skillTreeUI.skillTreeContainer.visible) {
