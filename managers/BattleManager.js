@@ -390,11 +390,43 @@ export default class BattleManager {
           victoryContainer.add([bg, victoryText, coinsText]);
   
           // Animate coins counting up to reward value
-          const rewardValue = Phaser.Math.Between(150, 250); // random coin reward
+          const luckFactor = this.playerManager.stats.luck;
+          let base_coins;
+          switch (this.monsterManager.currentMonsterType) {
+              case "SkeletonBase":
+                  base_coins = Phaser.Math.Between(5, 15);
+                  break;
+              case "SkeletonRogue":
+                  base_coins = Phaser.Math.Between(10, 20);
+                  break;
+              case "OrcBase":
+                  base_coins = Phaser.Math.Between(15, 30);
+                  break;
+              case "SkeletonWarrior":
+                  base_coins = Phaser.Math.Between(20, 35);
+                  break;
+              case "SkeletonMage":
+                  base_coins = Phaser.Math.Between(25, 40);
+                  break;
+              case "OrcRogue":
+                  base_coins = Phaser.Math.Between(30, 50);
+                  break;
+              case "OrcWarrior":
+                  base_coins = Phaser.Math.Between(40, 60);
+                  break;
+              case "OrcMage":
+                  base_coins = Phaser.Math.Between(50, 80);
+                  break;
+              default:
+                  base_coins = Phaser.Math.Between(5, 80);
+                  break;
+          }
+
+          let final_coins = Math.floor(base_coins + (luckFactor / 10));
 
           this.scene.tweens.addCounter({
               from: 0,
-              to: rewardValue,
+              to: final_coins,
               duration: 1000,
               ease: "Linear",
               onUpdate: tween => {
@@ -403,14 +435,14 @@ export default class BattleManager {
               },
               onComplete: () => {
                   // Add coins to the player's stat.
-                  this.playerManager.stats.coins += rewardValue;
+                  this.playerManager.stats.coins += final_coins;
                   
                   // Determine loot drops based on luck
-                  let baseDrops = Phaser.Math.Between(0, 2);
+                  let baseDrops = Phaser.Math.Between(0, 3);
 
                   // Calculate the chance of getting no loot based on luck
                   // The chance decreases as luck increases, but never reaches 0
-                  const luckFactor = this.playerManager.stats.luck;
+                  
                   const noLootChance = Math.max(0.33 * Math.exp(-luckFactor / 100), 0.05); // Minimum 5% chance of no loot
 
                   // Roll for loot
