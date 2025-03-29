@@ -25,34 +25,34 @@ export default class MonsterManager {
             {
                 key: 'SkeletonWarrior',
                 name: 'Skeleton Warrior',
-                stats: { health: 90, attack: 60, defense: 35 },
+                stats: { health: 90, attack: 65, defense: 40 },
             },
             {
                 key: 'SkeletonMage',
                 name: 'Skeleton Mage',
-                stats: { health: 85, attack: 70, defense: 30 },
+                stats: { health: 95, attack: 85, defense: 35 },
             },
         
             // Orcs (Stronger than Skeletons in same order)
             {
                 key: 'OrcBase',
                 name: 'Orc',
-                stats: { health: 100, attack: 55, defense: 35 }, // Weaker than Skeleton Mage, but stronger than Skeleton Base
+                stats: { health: 100, attack: 55, defense: 30 }, // Weaker than Skeleton Mage, but stronger than Skeleton Base
             },
             {
                 key: 'OrcRogue',
                 name: 'Orc Rogue',
-                stats: { health: 110, attack: 65, defense: 40 },
+                stats: { health: 115, attack: 65, defense: 40 },
             },
             {
                 key: 'OrcWarrior',
                 name: 'Orc Warrior',
-                stats: { health: 120, attack: 75, defense: 45 },
+                stats: { health: 120, attack: 75, defense: 50 },
             },
             {
                 key: 'OrcMage',
                 name: 'Orc Mage',
-                stats: { health: 115, attack: 85, defense: 40 },
+                stats: { health: 130, attack: 95, defense: 45 },
             },
         ];
         
