@@ -37,7 +37,7 @@ export default class PlayerManager {
             coins: 1000, 
             attack: 75, 
             speed: 160, 
-            luck: 5000, 
+            luck: 60, 
             agility: 80 
         };
 
@@ -46,10 +46,6 @@ export default class PlayerManager {
             ? JSON.parse(localStorage.getItem('playerPersistentStats'))
             : {};
 
-        // If luck is missing or lower than our default, override it.
-        if (!savedStats.luck || savedStats.luck < defaultStats.luck) {
-            savedStats.luck = defaultStats.luck;
-        }
 
         // Merge defaults with the saved stats (saved values override defaults, except for luck if too low)
         this.stats = { ...defaultStats, ...savedStats };
@@ -168,10 +164,10 @@ export default class PlayerManager {
         // Optionally reset other persistent stats (coins, skills, etc.)
         const defaultStats = {
           coins: 1000,
-          attack: this.stats.attack,
-          speed: this.stats.speed,
-          luck: this.stats.luck,
-          agility: this.stats.agility
+          attack: 75,
+          speed: 160,
+          luck: 60,
+          agility: 80
         };
         this.stats.coins = defaultStats.coins;
         localStorage.setItem('playerPersistentStats', JSON.stringify(defaultStats));
