@@ -405,6 +405,39 @@ export default class PlayerManager {
         
     }
 
+    removeInventoryItem(itemKey, amount) {
+        console.log("removeInventoryItem() called. itemKey:", itemKey, "amount to remove:", amount);
+        for (let i = 0; i < this.inventory.length && amount > 0; i++) {
+            let invItem = this.inventory[i];
+            console.log("Checking inventory at index", i, ":", invItem);
+            // If the item is stored as an object with a count
+            if (typeof invItem === "object" && invItem.key === itemKey) {
+                if (invItem.count > amount) {
+                    console.log("Subtracting", amount, "from object at index", i, "Old count:", invItem.count);
+                    invItem.count -= amount;
+                    amount = 0;
+                    console.log("New count:", invItem.count);
+                } else {
+                    console.log("Removing entire object at index", i, "with count:", invItem.count);
+                    amount -= invItem.count;
+                    this.inventory.splice(i, 1);
+                    i--; // adjust index after removal
+                    console.log("Inventory after removal:", JSON.stringify(this.inventory));
+                }
+            }
+            // If the item is stored just as a string
+            else if (typeof invItem === "string" && invItem === itemKey) {
+                console.log("Removing string item at index", i);
+                this.inventory.splice(i, 1);
+                amount--;
+                i--;
+                console.log("Inventory after removal:", JSON.stringify(this.inventory));
+            }
+        }
+        console.log("Final inventory after removal:", JSON.stringify(this.inventory));
+        localStorage.setItem('inventory', JSON.stringify(this.inventory));
+    }
+
     createTooltip(itemKey, x, y) {
         // Destroy any existing tooltip
         if (this.tooltip) {
