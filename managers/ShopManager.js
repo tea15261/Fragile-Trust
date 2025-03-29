@@ -103,84 +103,7 @@ export default class ShopManager {
         gridBg.fillStyle(0x222222, 0.7);
         gridBg.fillRoundedRect(0, 0, gridAreaWidth, gridAreaHeight+20, 10);
         gridContainer.add(gridBg);
-
-        // Create inventory slots (assuming playerManager.inventory is an array)
-        this.playerManager.inventory.forEach((item, index) => {
-            const row = 5;
-            const col = 4;
-            if (row >= rows) return; // Limit to 3 rows
-            const slotX = slotGap + col * (slotSize + slotGap);
-            const slotY = slotGap + row * (slotSize + slotGap);
-
-            // Draw slot background
-            const slotBg = this.scene.add.rectangle(slotX, slotY, slotSize, slotSize, 0x444444, 0.8)
-                .setOrigin(0, 0)
-                .setStrokeStyle(2, 0xFF0000);
-            gridContainer.add(slotBg);
-
-            // Add a horizontal separator line under the slot (exact replica of barrier style)
-            const separator = this.scene.add.rectangle(
-                slotX,                 // starting at the left edge of the slot
-                slotY + slotSize,      // at the bottom edge of the slot
-                slotSize,              // same width as the slot
-                10,                     // thickness of 2 pixels (adjust if needed)
-                0xFF0000               // same color as barrier
-            ).setOrigin(0, 0);
-            gridContainer.add(separator);
-
-            // If there is an item, display its icon and amount
-            if (item) {
-                // Add the item icon
-                const itemIcon = this.scene.add.image(slotX + slotSize / 2, slotY + slotSize / 2, item.key)
-                    .setDisplaySize(slotSize - 10, slotSize - 10)
-                    .setOrigin(0.5);
-                itemIcon.setInteractive();
-
-                // Add the item amount text
-                const itemAmount = this.scene.add.text(
-                    slotX + slotSize - 5, // Position near bottom-right corner of the slot
-                    slotY + slotSize - 5,
-                    `${item.amount}`,
-                    {
-                        fontSize: '14px',
-                        fill: '#FFFFFF',
-                        fontFamily: 'Arial',
-                        fontStyle: 'bold',
-                        align: 'right'
-                    }
-                ).setOrigin(1, 1);
-                gridContainer.add([itemIcon, itemAmount]);
-
-                // Add hover events to update the right panel
-                // When hovering over the inventory item, update the detail panel only if nothing is pinned.
-                itemIcon.on('pointerover', () => {
-                    if (!pinnedItem) {
-                        updateSellRightDetail(item);
-                    }
-                });
-
-                // When clicking an item, lock it in (pin it) so that its details remain.
-                itemIcon.on('pointerdown', () => {
-                    pinnedItem = item;
-                    updateSellRightDetail(item);
-                });
-
-                // When leaving an inventory item, clear the details only if nothing is pinned and not dragging.
-                itemIcon.on('pointerout', (pointer) => {
-                    if (!pinnedItem && !isSliderDragging) {
-                        // Check if pointer is not over the right panel.
-                        if (
-                            pointer.worldX < rightPanelX ||
-                            pointer.worldX > rightPanelX + rightPanelWidth ||
-                            pointer.worldY < 0 ||
-                            pointer.worldY > rightPanelHeight
-                        ) {
-                            updateSellRightDetail(null);
-                        }
-                    }
-                });
-            }
-        });
+        
 
         // Vertical Barrier (thin dark grey line, not touching top and bottom)
         const barrierHeight = gridAreaHeight - 40; // Reduced height to not touch top and bottom
@@ -272,9 +195,37 @@ export default class ShopManager {
             // Re-add the grid background (it was not destroyed)
             gridContainer.add(gridBg);
             
+            // Dimensions for the grid area on the left
+            const gridAreaWidth = 300; // Left panel width
+            const slotGap = 10; // Gap between slots
+            const cols = 5; // Number of columns
+            const rows = 3; // Number of rows
+            const slotSize = Math.floor((gridAreaWidth - (cols + 1) * slotGap) / cols); // Dynamically calculate slot size
+
+            // Loop over each slot (assuming the sell grid uses the same inventory array)
+            this.playerManager.inventory.forEach((item, index) => {
+                const row = Math.floor(index / cols);
+                const col = index % cols;
+                if (row >= rows) return; // Limit grid to defined rows
+                const slotX = slotGap + col * (slotSize + slotGap);
+                const slotY = slotGap + row * (slotSize + slotGap);
+
+                // Always add a small horizontal line underneath the slot
+                const horizontalLine = this.scene.add.rectangle(
+                    slotX + slotSize / 2, // Centered horizontally
+                    slotY + slotSize + 5, // Slightly below the slot
+                    slotSize - 12,        // Slightly shorter than the slot width
+                    2,                    // Thickness of the line
+                    0x333333              // Dark grey color
+                ).setOrigin(0.5, 0.5);
+                gridContainer.add(horizontalLine);
+            });
+
             // Loop over each slot (assuming the sell grid uses the same inventoryData array)
             this.playerManager.inventoryData.forEach((itemData, index) => {
                 if (!itemData) return; // Skip empty slots
+
+                
 
                 // Calculate cell position using the defined grid layout
                 const row = Math.floor(index / cols);
@@ -318,6 +269,7 @@ export default class ShopManager {
                         updateSellRightDetail(null);
                     }
                 });
+
                 gridContainer.add(itemImage);
                 
                 // If count > 1, display the count
