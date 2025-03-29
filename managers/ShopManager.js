@@ -169,18 +169,99 @@ export default class ShopManager {
                     descriptionText.setFontSize(10);
                 }
 
-                // Add all dynamic elements to the container
+                // Add item details to the dynamic container.
                 dynamicDetailContainer.add([nameText, itemImage, descriptionText]);
+
+               
+
+                // Define slider track dimensions
+                const sliderTrackWidth = rightPanelWidth - 40; // leave side margins
+                const sliderTrackX = rightPanelWidth / 2 - sliderTrackWidth / 2;
+                const sliderTrackY = rightPanelHeight - sliderReservedHeight + 10;
+
+                // Create the slider track with a slightly thicker line and shop color
+                const sliderTrack = this.scene.add.rectangle(
+                    sliderTrackX,
+                    sliderTrackY,
+                    sliderTrackWidth,
+                    4,             // increased thickness for a nicer look
+                    0x222222       // dark background matching the shop theme
+                ).setOrigin(0, 0.5);
+
+                // Create the slider knob as a vertical rectangle with a gold fill
+                const knobWidth = 12;
+                const knobHeight = 24;
+                const knob = this.scene.add.rectangle(
+                    sliderTrackX,
+                    sliderTrackY,
+                    knobWidth,
+                    knobHeight,
+                    0xffd700       // gold color
+                ).setOrigin(0.5, 0.5);
+                knob.setInteractive();
+                this.scene.input.setDraggable(knob);
+
+                // Create a numeric label below the slider track
+                const sliderValueText = this.scene.add.text(
+                    rightPanelWidth / 2,
+                    sliderTrackY - 30,
+                    "0",
+                    { fontSize: '14px', fill: '#ffffff', fontFamily: 'Arial', align: 'center' }
+                ).setOrigin(0.5, 0);
+
+                // Use the item count as the slider's maximum value (default to 1 if not present)
+                const maxValue = item.count || 1;
+
+                // --- Draw incremental tick marks on the slider track ---
+                const tickCount = 5; // number of ticks (including endpoints)
+                for (let i = 0; i < tickCount; i++) {
+                    const tickX = sliderTrackX + i * (sliderTrackWidth / (tickCount - 1));
+                    // Make endpoints slightly taller
+                    const tickHeight = (i === 0 || i === tickCount - 1) ? 10 : 6;
+                    const tick = this.scene.add.rectangle(
+                        tickX,
+                        sliderTrackY,
+                        2,              // tick width
+                        tickHeight,
+                        0xFFD700       // using gold for tick marks
+                    ).setOrigin(0.5, 0.5);
+                    dynamicDetailContainer.add(tick);
+                }
+
+                // Drag event for the knob: update its x position and update the numeric value
+                knob.on('drag', (pointer, dragX) => {
+                    dragX = Phaser.Math.Clamp(dragX, sliderTrackX, sliderTrackX + sliderTrackWidth);
+                    knob.x = dragX;
+                    const value = Math.round(((dragX - sliderTrackX) / sliderTrackWidth) * maxValue);
+                    sliderValueText.setText(value);
+                });
+
+                // Snap knob on drag end so it lines up exactly with the nearest increment
+                knob.on('dragend', () => {
+                    const percent = (knob.x - sliderTrackX) / sliderTrackWidth;
+                    const value = Math.round(percent * maxValue);
+                    const newX = sliderTrackX + (value / maxValue) * sliderTrackWidth;
+                    knob.x = newX;
+                    sliderValueText.setText(value);
+                });
+
+                // Add the slider elements to the dynamic detail container.
+                dynamicDetailContainer.add([sliderTrack, knob, sliderValueText]);
             } else {
-                // Add "No item selected" text dynamically
-                const noSelectText = this.scene.add.text(rightPanelWidth / 2, rightPanelHeight / 2, "No item selected", {
-                    fontSize: '20px',
-                    fill: '#FFD700',
-                    fontFamily: 'Arial',
-                    fontStyle: 'bold',
-                    align: 'center',
-                    wordWrap: { width: rightPanelWidth - 20, useAdvancedWrap: true }
-                }).setOrigin(0.5);
+                // If no item is selected, show the default message.
+                const noSelectText = this.scene.add.text(
+                    rightPanelWidth / 2,
+                    rightPanelHeight / 2,
+                    "No item selected",
+                    {
+                        fontSize: '20px',
+                        fill: '#FFD700',
+                        fontFamily: 'Arial',
+                        fontStyle: 'bold',
+                        align: 'center',
+                        wordWrap: { width: rightPanelWidth - 20, useAdvancedWrap: true }
+                    }
+                ).setOrigin(0.5);
                 dynamicDetailContainer.add(noSelectText);
             }
 
@@ -343,7 +424,11 @@ export default class ShopManager {
         };
 
         tabBuy.getAt(0).on('pointerdown', () => setActiveTab(0, 0));
-        tabSell.getAt(0).on('pointerdown', () => setActiveTab(1, 1));
+        // Example in setActiveTab when Sell tab is activated:
+        tabSell.getAt(0).on('pointerdown', () => {
+            setActiveTab(1, 1);
+            updateSellRightDetail(null);  // Ensure no item is selected initially
+        });
         tabLucky.getAt(0).on('pointerdown', () => setActiveTab(2, 2));
 
         this.shopContainer.add([contentBoxContainer, tabContainer]);
