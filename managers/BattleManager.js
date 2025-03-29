@@ -447,6 +447,7 @@ export default class BattleManager {
                         totalDrops = baseDrops + Math.floor(luckFactor / 50);
                     }
                     if (totalDrops > 0) {
+                        totalDrops = Math.min(totalDrops, 4);
                         const lootItems = this.lootManager.getLootDrops(totalDrops);
                         lootItems.forEach(item => {
                             // Add item to player's inventory using LootManager item data.
