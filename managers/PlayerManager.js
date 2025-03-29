@@ -32,26 +32,40 @@ export default class PlayerManager {
         this.sKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         this.dKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
 
-        // Player Stats
-        const savedPersistentStats = localStorage.getItem('playerPersistentStats')
-        ? JSON.parse(localStorage.getItem('playerPersistentStats'))
-        : {
-            coins: 1000,
-            attack: 75,
-            speed: 160,
-            luck: 5000,
-            agility: 80
+        // Default persistent stats
+        const defaultStats = { 
+            coins: 1000, 
+            attack: 75, 
+            speed: 160, 
+            luck: 5000, 
+            agility: 80 
         };
+
+        // Load saved stats, if any
+        let savedStats = localStorage.getItem('playerPersistentStats')
+            ? JSON.parse(localStorage.getItem('playerPersistentStats'))
+            : {};
+
+        // If luck is missing or lower than our default, override it.
+        if (!savedStats.luck || savedStats.luck < defaultStats.luck) {
+            savedStats.luck = defaultStats.luck;
+        }
+
+        // Merge defaults with the saved stats (saved values override defaults, except for luck if too low)
+        this.stats = { ...defaultStats, ...savedStats };
+
+        // Save updated stats back to localStorage to prevent future issues.
+        localStorage.setItem('playerPersistentStats', JSON.stringify(this.stats));
 
         this.stats = {
             health: 1000,       // Temporary – will be refilled after battle
             defense: 50,        // Temporary – will be refilled after battle
             mana: 80,           // Temporary – will be refilled after battle
-            attack: savedPersistentStats.attack,
-            speed: savedPersistentStats.speed,
-            luck: savedPersistentStats.luck,
-            agility: savedPersistentStats.agility,
-            coins: savedPersistentStats.coins
+            attack: this.stats.attack,
+            speed: this.stats.speed,
+            luck: this.stats.luck,
+            agility: this.stats.agility,
+            coins: this.stats.coins
         };
         this.inventory = localStorage.getItem('inventory')
             ? JSON.parse(localStorage.getItem('inventory'))
