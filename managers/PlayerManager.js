@@ -507,86 +507,46 @@ export default class PlayerManager {
     updateInventoryDisplay() {
         // Clear previous item images
         this.inventoryItemsGroup.removeAll(true);
-    
-        // For each slot, if an item exists, add its image
+        
+        // For each slot defined in inventorySlots, if there is an item, add its image.
         this.inventorySlots.forEach(slot => {
             const itemData = this.inventoryData[slot.index];
             if (itemData) {
                 // Place the item image centered in the slot
-                const itemImage = this.scene.add.image(slot.x + 20, slot.y + 20, itemData.key)
+                const itemImage = this.scene.add.image(
+                    slot.x + 20, // center X in the cell (assuming cellSize ~40)
+                    slot.y + 20, // center Y
+                    itemData.key
+                )
                     .setDisplaySize(40, 40)
                     .setOrigin(0.5);
-    
-                // Store slot index for drag-drop management
-                itemImage.slotIndex = slot.index;
-                itemImage.setInteractive({ draggable: true });
-    
-                // Add hover events for the tooltip
+                
+                // Instead of making the item draggable, simply set it interactive for tooltips.
+                itemImage.setInteractive();
+        
+                // Add hover events to show/hide tooltip
                 itemImage.on("pointerover", (pointer) => {
                     this.createTooltip(itemData.key, pointer.x + 10, pointer.y + 10);
                 });
-    
                 itemImage.on("pointerout", () => {
                     this.destroyTooltip();
                 });
-    
-                // Drag events
-                itemImage.on("dragstart", (pointer) => {
-                    itemImage.originalX = itemImage.x;
-                    itemImage.originalY = itemImage.y;
-                    // Change cursor to closed while dragging
-                    this.customCursor.setTexture("closedCursor");
-                });
-    
-                itemImage.on("drag", (pointer, dragX, dragY) => {
-                    itemImage.x = dragX;
-                    itemImage.y = dragY;
-                });
-    
-                itemImage.on("dragend", (pointer, dragX, dragY) => {
-                    // After dragging ends, revert cursor back to open
-                    this.customCursor.setTexture("openCursor");
-                    // Determine if dropped over a valid empty slot
-                    let foundSlot = null;
-                    this.inventorySlots.forEach(s => {
-                        const worldX = this.inventoryContainer.x + s.x;
-                        const worldY = this.inventoryContainer.y + s.y;
-                        if (
-                            dragX >= worldX &&
-                            dragX <= worldX + s.width &&
-                            dragY >= worldY &&
-                            dragY <= worldY + s.height &&
-                            this.inventoryData[s.index] === null // empty slot check
-                        ) {
-                            foundSlot = s;
-                        }
-                    });
-                    if (foundSlot) {
-                        // Place item in the new slot in the model
-                        this.inventoryData[foundSlot.index] = this.inventoryData[itemImage.slotIndex];
-                        this.inventoryData[itemImage.slotIndex] = null;
-                        // Update item's slotIndex and position to new slot
-                        itemImage.slotIndex = foundSlot.index;
-                        itemImage.x = foundSlot.x + (foundSlot.width / 2);
-                        itemImage.y = foundSlot.y + (foundSlot.height / 2);
-                        // Optionally update localStorage
-                        localStorage.setItem('inventoryData', JSON.stringify(this.inventoryData));
-                    } else {
-                        // Revert item to its original slot position
-                        const origSlot = this.inventorySlots[itemImage.slotIndex];
-                        itemImage.x = origSlot.x + (origSlot.width / 2);
-                        itemImage.y = origSlot.y + (origSlot.height / 2);
-                    }
-                });
-    
+                
                 this.inventoryItemsGroup.add(itemImage);
-    
-                // If count > 1, add a count label on top-right
+                
+                // If count > 1, add a count label at the top-right of the slot with a black outline.
                 if (itemData.count > 1) {
-                    const countText = this.scene.add.text(slot.x + 35, slot.y + 5, `${itemData.count}`, {
-                        fontSize: "16px",
-                        fill: "#ffffff"
-                    }).setOrigin(1, 0);
+                    const countText = this.scene.add.text(
+                        slot.x + 35,
+                        slot.y + 5,
+                        `${itemData.count}`,
+                        {
+                            fontSize: "16px",
+                            fill: "#ffffff",
+                            stroke: "#000000",        // Black outline
+                            strokeThickness: 2         // Thickness of outline
+                        }
+                    ).setOrigin(1, 0);
                     this.inventoryItemsGroup.add(countText);
                 }
             }
