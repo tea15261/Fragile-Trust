@@ -61,5 +61,11 @@ export default class PreloadManager {
         
         scene.load.spritesheet('OrcMageIdle', 'assets/enemy/Orc-crew/Orc-mage/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         scene.load.spritesheet('OrcMageDeath', 'assets/enemy/Orc-crew/Orc-mage/death/Death-Sheet.png', { frameWidth: 64, frameHeight: 64 });
+    
+        // SHOP assets
+        scene.load.image('pink-card', 'assets/shop/the-lucky-mug/pink-card.png');
+        scene.load.image('blue-card', 'assets/shop/the-lucky-mug/blue-card.png');
+        scene.load.image('orange-card', 'assets/shop/the-lucky-mug/orange-card.png');
+        scene.load.image('black-card', 'assets/shop/the-lucky-mug/black-card.png');
     }
 }
