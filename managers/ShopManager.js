@@ -444,7 +444,7 @@ export default class ShopManager {
                         }
 
                         // Save the initial y position (set when the popup was created)
-                        const initialPopupY = coinText.y - 30;
+                        const initialPopupY = coinText.y - 17;
 
                         // Animate the coin gain popup: move up and fade out
                         this.scene.tweens.add({
@@ -583,10 +583,200 @@ export default class ShopManager {
         this.shopContainer.add(sellContent);
 
         const luckyContent = this.scene.add.container(10, 10);
+        
+        // --- Define a helper function to load the gambling buttons ---
+        const loadGamblingButtons = () => {
+            // Clear any previous content from luckyContent
+            luckyContent.removeAll(true);
+            
+            const gameLabels = ['High Low', 'Blackjack', 'Poker', 'War'];
+            const gameButtonWidth = 114; 
+            const gameButtonHeight = 80;
+            const gameGap = 15;
+
+            gameLabels.forEach((label, index) => {
+                const x = index * (gameButtonWidth + gameGap);
+                const y = 125; // row where buttons are placed
+
+                // Calculate dimensions for the vertical decorative rectangle
+                const verticalRectWidth = gameButtonWidth - 40;  // Adjust width as needed
+                const verticalRectHeight = 110;                  // Adjust height as needed
+                const verticalRectX = (gameButtonWidth - verticalRectWidth) / 2;
+                const verticalRectY = -verticalRectHeight - 10;    // gap above the button
+
+                let verticalRect;
+                if (index === 0) {
+                    // Create the transparent rectangle.
+                    const rectGraphics = this.scene.add.graphics();
+                    rectGraphics.fillStyle(0x222222, 0.7);
+                    rectGraphics.fillRoundedRect(verticalRectX, verticalRectY, verticalRectWidth, verticalRectHeight, 5);
+                    
+                    // Create the pink-card image, centered within the rectangle.
+                    const image = this.scene.add.image(
+                        verticalRectX + verticalRectWidth / 2, 
+                       (verticalRectY + verticalRectHeight / 2)+2, 
+                        'pink-card'
+                    ).setOrigin(0.5);
+                    // Set the display size as desired.
+                    image.setDisplaySize(1700, 1000);
+
+                    // Combine the transparent rectangle and image into a container.
+                    verticalRect = this.scene.add.container(0, 0, [rectGraphics, image]);
+                } else if (index === 1) {
+
+                    // Create the transparent rectangle.
+                    const rectGraphics = this.scene.add.graphics();
+                    rectGraphics.fillStyle(0x222222, 0.7);
+                    rectGraphics.fillRoundedRect(verticalRectX, verticalRectY, verticalRectWidth, verticalRectHeight, 5);
+                    
+                    // Create the pink-card image, centered within the rectangle.
+                    const image = this.scene.add.image(
+                        verticalRectX + verticalRectWidth / 2, 
+                       (verticalRectY + verticalRectHeight / 2)+2, 
+                        'orange-card'
+                    ).setOrigin(0.5);
+                    // Set the display size as desired.
+                    image.setDisplaySize(1700, 1000);
+
+                    // Combine the transparent rectangle and image into a container.
+                    verticalRect = this.scene.add.container(0, 0, [rectGraphics, image]);
+                } else if (index === 2) {
+
+                    // Create the transparent rectangle.
+                    const rectGraphics = this.scene.add.graphics();
+                    rectGraphics.fillStyle(0x222222, 0.7);
+                    rectGraphics.fillRoundedRect(verticalRectX, verticalRectY, verticalRectWidth, verticalRectHeight, 5);
+                    
+                    // Create the pink-card image, centered within the rectangle.
+                    const image = this.scene.add.image(
+                        verticalRectX + verticalRectWidth / 2, 
+                       (verticalRectY + verticalRectHeight / 2)+2, 
+                        'blue-card'
+                    ).setOrigin(0.5);
+                    // Set the display size as desired.
+                    image.setDisplaySize(1700, 1000);
+
+                    // Combine the transparent rectangle and image into a container.
+                    verticalRect = this.scene.add.container(0, 0, [rectGraphics, image]);
+                } else if (index === 3) {
+
+                    // Create the transparent rectangle.
+                    const rectGraphics = this.scene.add.graphics();
+                    rectGraphics.fillStyle(0x222222, 0.7);
+                    rectGraphics.fillRoundedRect(verticalRectX, verticalRectY, verticalRectWidth, verticalRectHeight, 5);
+                    
+                    // Create the pink-card image, centered within the rectangle.
+                    const image = this.scene.add.image(
+                        verticalRectX + verticalRectWidth / 2, 
+                       (verticalRectY + verticalRectHeight / 2)+2, 
+                        'black-card'
+                    ).setOrigin(0.5);
+                    // Set the display size as desired.
+                    image.setDisplaySize(1700, 1000);
+
+                    // Combine the transparent rectangle and image into a container.
+                    verticalRect = this.scene.add.container(0, 0, [rectGraphics, image]);
+                }
+
+                // Create button background.
+                const gameButtonBg = this.scene.add.graphics();
+                gameButtonBg.fillStyle(0x333333, 0.8);
+                gameButtonBg.fillRoundedRect(0, 0, gameButtonWidth, gameButtonHeight, 10);
+                gameButtonBg.lineStyle(2, 0xffffff, 1);
+                gameButtonBg.strokeRoundedRect(0, 0, gameButtonWidth, gameButtonHeight, 10);
+                // Make the background interactive.
+                gameButtonBg.setInteractive(new Phaser.Geom.Rectangle(0, 0, gameButtonWidth, gameButtonHeight), Phaser.Geom.Rectangle.Contains);
+
+                // Create button text matching the shop text style.
+                const gameButtonText = this.scene.add.text(gameButtonWidth / 2, gameButtonHeight / 2, label, {
+                    fontSize: '18px',
+                    fill: '#FFCE00',
+                    fontFamily: 'Verdana',
+                    fontStyle: 'bold',
+                    stroke: '#000000',
+                    strokeThickness: 2,
+                    shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 2 }
+                }).setOrigin(0.5);
+
+                // Create container with vertical rectangle, then button background and text.
+                const gameButton = this.scene.add.container(x, y, [verticalRect, gameButtonBg, gameButtonText]);
+                gameButton.setSize(gameButtonWidth, gameButtonHeight);
+
+                // Set a flag to track hover state.
+                gameButtonBg.isHovered = false;
+
+                // Attach interactive events directly to the background.
+                gameButtonBg.on('pointerover', () => {
+                    gameButtonBg.isHovered = true;
+                    gameButtonBg.clear();
+                    gameButtonBg.fillStyle(0x555555, 0.9);
+                    gameButtonBg.fillRoundedRect(0, 0, gameButtonWidth, gameButtonHeight, 10);
+                    gameButtonBg.lineStyle(2, 0xffffff, 1);
+                    gameButtonBg.strokeRoundedRect(0, 0, gameButtonWidth, gameButtonHeight, 10);
+                });
+
+                gameButtonBg.on('pointerout', () => {
+                    gameButtonBg.isHovered = false;
+                    gameButtonBg.clear();
+                    gameButtonBg.fillStyle(0x333333, 0.8);
+                    gameButtonBg.fillRoundedRect(0, 0, gameButtonWidth, gameButtonHeight, 10);
+                    gameButtonBg.lineStyle(2, 0xffffff, 1);
+                    gameButtonBg.strokeRoundedRect(0, 0, gameButtonWidth, gameButtonHeight, 10);
+                });
+
+                // When clicked, clear all buttons and show a placeholder for the selected game.
+                gameButtonBg.on('pointerdown', () => {
+                    // Simulate press effect.
+                    gameButtonBg.clear();
+                    gameButtonBg.fillStyle(0xffffff, 1);
+                    gameButtonBg.fillRoundedRect(0, 0, gameButtonWidth, gameButtonHeight, 10);
+                    gameButtonBg.lineStyle(2, 0xffffff, 1);
+                    gameButtonBg.strokeRoundedRect(0, 0, gameButtonWidth, gameButtonHeight, 10);
+
+                    this.scene.time.delayedCall(100, () => {
+                        // Revert drawing based on hover state.
+                        gameButtonBg.clear();
+                        if (gameButtonBg.isHovered) {
+                            gameButtonBg.fillStyle(0x555555, 0.9);
+                        } else {
+                            gameButtonBg.fillStyle(0x333333, 0.8);
+                        }
+                        gameButtonBg.fillRoundedRect(0, 0, gameButtonWidth, gameButtonHeight, 10);
+                        gameButtonBg.lineStyle(2, 0xffffff, 1);
+                        gameButtonBg.strokeRoundedRect(0, 0, gameButtonWidth, gameButtonHeight, 10);
+
+                        console.log("Selected game:", label);
+                        // Clear all gambling buttons.
+                        luckyContent.removeAll(true);
+                        // Show placeholder text for the selected game with consistent styling.
+                        const placeholderStyle = {
+                            fontSize: '20px',
+                            fill: '#FFD700',
+                            fontFamily: 'Arial',
+                            fontStyle: 'bold',
+                            stroke: '#000000',
+                            strokeThickness: 2,
+                            shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 2 }
+                        };
+                        const placeholderText = this.scene.add.text(
+                            120,
+                            5,
+                            `Placeholder for ${label}`,
+                            placeholderStyle
+                        ).setOrigin(0.5);
+                        luckyContent.add(placeholderText);
+                    });
+                });
+
+                luckyContent.add(gameButton);
+            });
+        };
+
+        // Call the helper function to load the gambling buttons
+        loadGamblingButtons();
 
         const fillerStyle = { fontSize: '20px', fill: '#FFD700', fontFamily: 'Arial', fontStyle: 'bold' };
         buyContent.add(this.scene.add.text(0, 0, "Placeholder for buying", fillerStyle));
-        luckyContent.add(this.scene.add.text(0, 0, "Placeholder for gambling", fillerStyle));
 
         buyContent.setVisible(true);
         sellContent.setVisible(false);
@@ -620,7 +810,6 @@ export default class ShopManager {
                         bg.fillRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 });
                         bg.strokeRoundedRect(0, 0, tabWidth, tabHeight, { tl: 10, tr: 10, bl: 0, br: 0 });
                     });
-
                 } else {
                     bg.clear();
                     bg.fillStyle(0x222222, 0.7); 
@@ -632,11 +821,17 @@ export default class ShopManager {
         
             buyContent.setVisible(activeContent === 0);
             sellContent.setVisible(activeContent === 1);
-            luckyContent.setVisible(activeContent === 2);
+            
+            // When Lucky Mug tab is activated, re-load the gambling buttons.
+            if (activeContent === 2) {
+                luckyContent.setVisible(true);
+                loadGamblingButtons();
+            } else {
+                luckyContent.setVisible(false);
+            }
         };
 
         tabBuy.getAt(0).on('pointerdown', () => setActiveTab(0, 0));
-        // Example in setActiveTab when Sell tab is activated:
         tabSell.getAt(0).on('pointerdown', () => {
             setActiveTab(1, 1);
             updateSellRightDetail(null);  // Ensure no item is selected initially
