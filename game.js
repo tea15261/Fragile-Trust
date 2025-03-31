@@ -12,7 +12,7 @@ const config = {
             debug: false // collision debugging
         }
     },
-    scene: [BattleScene, TavernScene, ForestScene,], 
+    scene: [TavernScene, BattleScene, ForestScene,], 
     scale: {
         mode: Phaser.Scale.FIT, 
         autoCenter: Phaser.Scale.CENTER_BOTH 
