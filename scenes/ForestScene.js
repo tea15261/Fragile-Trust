@@ -43,6 +43,14 @@ export default class ForestScene extends Phaser.Scene {
         this.createForestCutterAnimation();
         forestCutter.play('forest-cutter-chop');
     
+       /* for (let i = 0; i < 13; i++) {
+            let x = 100 + (i % 8) * (55 + 10);  // Reset x after 8 cards
+            let y = 100 + Math.floor(i / 8) * (66 + 10);  // Move to a new row after 8 cards
+        
+            this.add.image(x, y, 'hearts', i);
+        }*/
+              
+
         // data based on previous scene
         if (data.from === 'tavern') {
             this.playerManager.player.setPosition(520, 60);
