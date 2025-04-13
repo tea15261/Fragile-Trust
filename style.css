@@ -21,16 +21,16 @@ canvas {
     width: 100%;
     height: 100%;
     z-index: -1;
-    background: linear-gradient(to right, #a8e6cf, #dcedc1);
+    background: linear-gradient(to right, #195C49, #2E3912);
     overflow: hidden;
   }
   
   /* Base style for all circles: no border, increased opacity and glow for visibility */
   .circle {
     position: absolute;
-    background: rgba(255, 255, 255, 0.4);  /* increased opacity */
+    background: rgba(0, 0, 0, 0.4);  /* increased opacity */
     border-radius: 50%;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6); /* soft glow */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.6); /* soft glow */
     animation: pulse 6s infinite ease-in-out;
   }
   
@@ -111,7 +111,7 @@ canvas {
     width: 50px;
     height: 50px;
     top: 88%;
-    left: 96%;
+    left: 80%;
     animation-duration: 7s;
   }
   
