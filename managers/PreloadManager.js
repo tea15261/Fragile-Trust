@@ -67,5 +67,12 @@ export default class PreloadManager {
         scene.load.image('blue-card', 'assets/shop/the-lucky-mug/blue-card.png');
         scene.load.image('orange-card', 'assets/shop/the-lucky-mug/orange-card.png');
         scene.load.image('black-card', 'assets/shop/the-lucky-mug/black-card.png');
+
+        //scene.load.spritesheet('hearts', 'assets/shop/the-lucky-mug/hearts.png', { frameWidth: 56.3846153, frameHeight: 66});
+        //this.load.spritesheet('hearts', 'path/to/hearts.png', { frameWidth: cardWidth, frameHeight: cardHeight });
+        //this.load.spritesheet('diamonds', 'path/to/diamonds.png', { frameWidth: cardWidth, frameHeight: cardHeight });
+        //this.load.spritesheet('clubs', 'path/to/clubs.png', { frameWidth: cardWidth, frameHeight: cardHeight });
+        //this.load.spritesheet('spades', 'path/to/spades.png', { frameWidth: cardWidth, frameHeight: cardHeight });
+        
     }
 }
