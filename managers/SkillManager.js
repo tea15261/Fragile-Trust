@@ -411,16 +411,49 @@ export class SkillTreeUI {
               duration: 50,
               yoyo: true,
               repeat: 2,
-              onComplete: () => {
-                // Optionally reset any changed properties here.
-              }
+              onComplete: () => {}
             });
             this.showPrerequisiteError(skill, circle.x, circle.y);
             return;
           }
-          
+
+          // --- SKILLBOOK REQUIREMENT CHECK ---
+          // Count skillbooks in inventory
+          let spellBookCount = 0;
+          let spellBookSlotIndex = -1;
+          if (this.playerManager && Array.isArray(this.playerManager.inventoryData)) {
+            for (let i = 0; i < this.playerManager.inventoryData.length; i++) {
+              const item = this.playerManager.inventoryData[i];
+              if (item && item.key === "skillBook") {
+                spellBookCount += item.count || 1;
+                if (spellBookSlotIndex === -1) spellBookSlotIndex = i;
+              }
+            }
+          }
+          if (spellBookCount <= 0) {
+            // Show error if no skillbook
+            const errorText = this.scene.add.text(circle.x, circle.y - 30, "You need a Skill Book!", {
+              fontSize: '16px',
+              fill: '#ff0000',
+              fontStyle: 'bold',
+              stroke: '#000000',
+              strokeThickness: 2
+            }).setOrigin(0.5);
+            this.scene.tweens.add({
+              targets: errorText,
+              alpha: 0,
+              duration: 2000,
+              onComplete: () => errorText.destroy()
+            });
+            return;
+          }
+
+          // Otherwise, allow unlocking (start hold-to-unlock)
           circle.isBeingHeld = true;
           circle.holdStartTime = this.scene.time.now;
+
+          // --- When progress bar completes (in updateProgressBars), remove a skillbook and update UI ---
+          // (Add this logic inside the if (progress >= 1) block in updateProgressBars)
         });
         
   
@@ -493,6 +526,19 @@ export class SkillTreeUI {
           if (progress >= 1) {
             circle.isBeingHeld = false;
             if (!this.unlockedSkills[node.skill.key]) {
+              // --- REMOVE SKILLBOOK FROM INVENTORY ---
+              if (this.playerManager && typeof this.playerManager.removeInventoryItem === 'function') {
+                this.playerManager.removeInventoryItem("skillBook", 1);
+                // Update inventory UI
+                if (typeof this.playerManager.updateInventoryDisplay === 'function') {
+                  this.playerManager.updateInventoryDisplay();
+                }
+                // Update localStorage is handled by removeInventoryItem
+              }
+              // Update spellbook counter UI
+              if (typeof this.updateSpellBookCounter === 'function') {
+                this.updateSpellBookCounter();
+              }
               this.unlockedSkills[node.skill.key] = true;
               circle.fillColor = 0x00ff00;
               console.log(`Unlocked ${node.skill.name}`);
@@ -529,6 +575,56 @@ export class SkillTreeUI {
       const centerX = this.scene.cameras.main.width / 2;
       const centerY = this.scene.cameras.main.height / 2;
       const gradientAlpha = 0.3;
+
+      // --- SPELLBOOK COUNTER CIRCLE ---
+      // Only create once
+      const spellBookCircleRadius = 26;
+      const spellBookCircleX = this.scene.cameras.main.width - spellBookCircleRadius - 18;
+      const spellBookCircleY = spellBookCircleRadius + 18;
+
+      // Circle background with border
+      this.spellBookCircle = this.scene.add.graphics();
+      this.spellBookCircle.fillStyle(0x222222, 0.85);
+      this.spellBookCircle.fillCircle(spellBookCircleX, spellBookCircleY, spellBookCircleRadius);
+      this.spellBookCircle.lineStyle(3, 0xFFD700, 1);
+      this.spellBookCircle.strokeCircle(spellBookCircleX, spellBookCircleY, spellBookCircleRadius);
+
+      // Spellbook image (centered in the circle)
+      this.spellBookImage = this.scene.add.image(spellBookCircleX, spellBookCircleY, 'skillBook')
+        .setDisplaySize(32, 32)
+        .setOrigin(0.5);
+
+      // Get spellbook count from inventory
+      let spellBookCount = 0;
+      if (this.playerManager && Array.isArray(this.playerManager.inventoryData)) {
+        for (const item of this.playerManager.inventoryData) {
+          if (item && item.key === "skillBook") {
+            spellBookCount += item.count || 1;
+          }
+        }
+      }
+
+      // Number text (bottom right of the circle)
+      this.spellBookCountText = this.scene.add.text(
+        spellBookCircleX + 10, spellBookCircleY + 10,
+        `${spellBookCount}`,
+        {
+          fontSize: '16px',
+          fill: '#FFD700',
+          fontFamily: 'Arial',
+          fontStyle: 'bold',
+          stroke: '#000000',
+          strokeThickness: 2
+        }
+      ).setOrigin(0.5);
+
+      // Group all spellbook UI elements for easy show/hide
+      this.spellBookCounterGroup = this.scene.add.container(0, 0, [
+        this.spellBookCircle,
+        this.spellBookImage,
+        this.spellBookCountText
+      ]);
+      this.spellBookCounterGroup.setDepth(1001);
   
       // X dividers.
       const bg = this.scene.add.rectangle(
@@ -605,11 +701,15 @@ export class SkillTreeUI {
   
       // IMPORTANT: Add connection graphics before creating nodes so lines are drawn underneath.
       this.skillTreeContainer.add(this.connectionGraphics);
+
+      // Add to skill tree container
+      this.skillTreeContainer.add(this.spellBookCounterGroup);
   
       this.createSkillNodes();
     }
   
     this.skillTreeContainer.setVisible(true);
+    if (this.spellBookCounterGroup) this.spellBookCounterGroup.setVisible(true);
     this.updateConnectionLines();
   }
   
@@ -635,6 +735,14 @@ export class SkillTreeUI {
     if (!this.inventoryContainer || !this.inventoryContainer.visible) {
       this.scene.physics.resume();
       this.scene.anims.resumeAll();
+    }
+
+    if (this.spellBookCounterGroup) this.spellBookCounterGroup.setVisible(false);
+
+    // --- Hide tooltip if open ---
+    if (this.tooltip) {
+      this.tooltip.destroy();
+      this.tooltip = null;
     }
   }
 
@@ -711,6 +819,23 @@ export class SkillTreeUI {
     });
   }
 
-  
+  updateSpellBookCounter() {
+    // Recalculate spellbook count from inventory
+    let spellBookCount = 0;
+    if (this.playerManager && Array.isArray(this.playerManager.inventoryData)) {
+      for (const item of this.playerManager.inventoryData) {
+        if (item && item.key === "skillBook") {
+          spellBookCount += item.count || 1;
+        }
+      }
+    }
+    if (this.spellBookCountText) {
+      this.spellBookCountText.setText(`${spellBookCount}`);
+    }
+    // Optionally, gray out the spellbook image if none left
+    if (this.spellBookImage) {
+      this.spellBookImage.setAlpha(spellBookCount > 0 ? 1 : 0.5);
+    }
+  }
 
 }
