@@ -49,7 +49,6 @@ export default class ItemManager {
             description: "A rare book required to unlock a new skill. Consumed on use.",
             price: 120,
             type: "consumable",
-            unlocksSkill: true
             },
             // Example: Loot items
             { key: "Weathered Bronze Band", name: "Weathered Bronze Band", description: "A rugged bronze band, worn with age.", price: 5, weight: 15, type: "loot" },
