@@ -24,12 +24,16 @@ export default class PreloadManager {
         scene.load.image('Crimson Crest Ring', 'assets/items/Crimson Crest Ring.png');
         scene.load.image('Azure Jewel Band', 'assets/items/Azure Jewel Band.png');
         scene.load.image('Verdant Inlay Ring', 'assets/items/Verdant Inlay Ring.png');
+        scene.load.image('skillBook', 'assets/items/Skill Book.png');
+
 
         // potion assets
         scene.load.image('healthPotion', ' assets/items/Health Potion.png');
         scene.load.image('manaPotion', 'assets/items/Mana Potion.png');
         scene.load.image('defensePotion', 'assets/items/Defense Potion.png');
-        
+        scene.load.image('luckPotion', 'assets/items/Luck Potion.png');
+        scene.load.image('agilityPotion', 'assets/items/Agility Potion.png');
+
         // environment assets
         scene.load.image('forest', 'assets/environment/forest-backdrop.png');
         scene.load.image('evil-forest', 'assets/environment/forest-backdrop-evil.png');
@@ -40,6 +44,8 @@ export default class PreloadManager {
         // NPC assets
         scene.load.spritesheet('forest-cutter', 'assets/npc/forest-cutter.png', { frameWidth: 90, frameHeight: 75 });
         scene.load.spritesheet('stranger', 'assets/npc/Stranger.png', { frameWidth: 64, frameHeight: 64 });
+        scene.load.spritesheet('tavern-keeper', 'assets/npc/Tavern-Keeper.png', { frameWidth: 32, frameHeight: 32 });
+        scene.load.spritesheet('tavernKeeperHandsIdle', 'assets/npc/tavern-idlehands.png', { frameWidth: 32, frameHeight: 32 });
 
         // Monster assets
         scene.load.spritesheet('SkeletonBaseIdle', 'assets/enemy/Skeleton-crew/Skelton-base/idle/Idle-Sheet (1).png', { frameWidth: 32, frameHeight: 32 });
@@ -65,7 +71,9 @@ export default class PreloadManager {
         
         scene.load.spritesheet('OrcMageIdle', 'assets/enemy/Orc-crew/Orc-mage/idle/Idle-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         scene.load.spritesheet('OrcMageDeath', 'assets/enemy/Orc-crew/Orc-mage/death/Death-Sheet.png', { frameWidth: 64, frameHeight: 64 });
-    
+        
+        scene.load.spritesheet('monsterHoldHands', 'assets/enemy/Monster holding Hands (cute!).png', { frameWidth: 32, frameHeight: 32 });
+
         // SHOP assets
         scene.load.image('pink-card', 'assets/shop/the-lucky-mug/pink-card.png');
         scene.load.image('blue-card', 'assets/shop/the-lucky-mug/blue-card.png');
