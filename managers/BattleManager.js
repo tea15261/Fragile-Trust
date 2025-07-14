@@ -340,6 +340,7 @@ export default class BattleManager {
     checkBattleOutcome() {
         if (this.playerManager.stats.health <= 0) {
             console.log("Player defeated!");
+            this.playerManager.playDeathAnimation();
             this.endBattle();
         } else if (this.monsterManager.health <= 0) {
             console.log("Monster defeated!");

@@ -5,6 +5,7 @@ export default class PreloadManager {
         scene.load.spritesheet('playerRun', 'assets/player/run/Run-Sheet.png', { frameWidth: 32, frameHeight: 32 });
         scene.load.spritesheet('handsIdle', 'assets/player/idle/Knight Idle holding nothing.png', { frameWidth: 32, frameHeight: 32 });
         scene.load.spritesheet('handsRun', 'assets/player/run/Knight Run holding nothing.png', { frameWidth: 64, frameHeight: 64 });
+        scene.load.spritesheet('playerDeath', 'assets/player/death/Death-Sheet.png', { frameWidth: 48, frameHeight: 32 });
         scene.load.image('customCursor', 'assets/cursor/hand_point.png');
         scene.load.image('openCursor', 'assets/cursor/hand_open.png');
         scene.load.image('closedCursor', 'assets/cursor/hand_closed.png');

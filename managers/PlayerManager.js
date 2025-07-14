@@ -39,7 +39,7 @@ export default class PlayerManager {
         // Default persistent stats
         const defaultStats = { 
             coins: 1000, 
-            attack: 75, 
+            attack: 5, 
             speed: 160, 
             luck: 200, 
             agility: 80 
@@ -58,7 +58,7 @@ export default class PlayerManager {
         localStorage.setItem('playerPersistentStats', JSON.stringify(this.stats));
 
         this.stats = {
-            health: 1000,       // Temporary – will be refilled after battle
+            health: 10,       // Temporary – will be refilled after battle
             defense: 50,        // Temporary – will be refilled after battle
             mana: 80,           // Temporary – will be refilled after battle
             attack: this.stats.attack,
@@ -781,6 +781,7 @@ export default class PlayerManager {
     }
 
     update() {
+        if (this.isDead) return;
         if (Phaser.Input.Keyboard.JustDown(this.spaceBar)) {
             console.log("Player Stats:", this.stats);
             console.log("Player Inventory:", this.inventory);
@@ -901,7 +902,30 @@ export default class PlayerManager {
         this.shadow.setVisible(true); 
     }
 
+    playDeathAnimation() {
+    if (!this.player) return;
+    this.isDead = true;
     
+    // Stop all current animations and play death animation
+    this.player.anims.stop();
+    this.player.anims.play('playerDeath', true);
+
+    // Hide the hands immediately
+    if (this.hands) {
+        this.hands.visible = false;
+        this.hands.anims.stop();
+    }
+
+    // Optionally fade out or tint the player sprite for effect
+    this.scene.tweens.add({
+        targets: this.player,
+        alpha: 0.5,
+        duration: 800,
+        yoyo: false
+    });
+
+    // Optionally: disable input or show a "Game Over" popup here
+    }
 
     hideUI() {
         if(!this.inBattle) {
@@ -966,6 +990,13 @@ export default class PlayerManager {
             frames: this.scene.anims.generateFrameNumbers('handsRun', { start: 0, end: 5 }),
             frameRate: 10,
             repeat: -1
+        });
+
+        this.scene.anims.create({
+            key: 'playerDeath',
+            frames: this.scene.anims.generateFrameNumbers('playerDeath', { start: 0, end: 5 }),
+            frameRate: 10,
+            repeat: 0
         });
     }
 
