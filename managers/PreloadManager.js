@@ -27,7 +27,8 @@ export default class PreloadManager {
 
         // potion assets
         scene.load.image('healthPotion', ' assets/items/Health Potion.png');
-
+        scene.load.image('manaPotion', 'assets/items/Mana Potion.png');
+        scene.load.image('defensePotion', 'assets/items/Defense Potion.png');
         
         // environment assets
         scene.load.image('forest', 'assets/environment/forest-backdrop.png');
