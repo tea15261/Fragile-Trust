@@ -63,16 +63,71 @@ export default class TavernScene extends Phaser.Scene {
         this.showShop.create(320, 100, null).setSize(50, 10).setOrigin(0, 0).setVisible(false);
 
         this.physics.add.overlap(this.playerManager.player, this.showShop, this.openShop, null, this);
+
+        // Add the tavern keeper in the center of the tavern
+        const tavernKeeper = this.add.sprite(320, 71, 'tavern-keeper');
+        tavernKeeper.setScale(0.9);
+
+        // Add animated hands for the tavern keeper
+        const tavernKeeperHands = this.add.sprite(320, 71, 'tavernKeeperHandsIdle');
+        tavernKeeperHands.setScale(0.9);
+
+        // Create the hands idle animation if it doesn't exist
+        if (!this.anims.exists('tavern-keeper-hands-idle')) {
+            this.anims.create({
+                key: 'tavern-keeper-hands-idle',
+                frames: this.anims.generateFrameNumbers('tavernKeeperHandsIdle', { start: 0, end: 3 }),
+                frameRate: 6,
+                repeat: -1
+            });
+        }
+
+        // Play the hands idle animation
+        tavernKeeperHands.anims.play('tavern-keeper-hands-idle');
+
+        // Create the animation only if it doesn't already exist
+        if (!this.anims.exists('tavern-keeper-idle')) {
+            this.anims.create({
+                key: 'tavern-keeper-idle',
+                frames: this.anims.generateFrameNumbers('tavern-keeper', { start: 0, end: 3 }),
+                frameRate: 6,
+                repeat: -1
+            });
+        }
+
+        // Play the idle animation
+        tavernKeeper.anims.play('tavern-keeper-idle');
+
+        // Store references to tavernKeeper and tavernKeeperHands
+        this.tavernKeeper = tavernKeeper;
+        this.tavernKeeperHands = tavernKeeperHands;
     }
 
     update() {
         this.playerManager.update(); 
 
-         // check if the player is overlapping with the special walls
-         if (this.physics.overlap(this.playerManager.player, this.specialWalls)) {
+        // check if the player is overlapping with the special walls
+        if (this.physics.overlap(this.playerManager.player, this.specialWalls)) {
             this.playerManager.hide();
         } else {
             this.playerManager.show();
+        }
+
+        // Make the tavern keeper always face the player
+        if (this.tavernKeeper && this.playerManager && this.playerManager.player) {
+            if (this.playerManager.player.x < this.tavernKeeper.x) {
+                this.tavernKeeper.flipX = true;
+                if (this.tavernKeeperHands) {
+                    this.tavernKeeperHands.flipX = true;
+                    this.tavernKeeperHands.x = this.tavernKeeper.x - 1; // Move hands left by 1px
+                }
+            } else {
+                this.tavernKeeper.flipX = false;
+                if (this.tavernKeeperHands) {
+                    this.tavernKeeperHands.flipX = false;
+                    this.tavernKeeperHands.x = this.tavernKeeper.x; // Reset hands to normal position
+                }
+            }
         }
     }
 
