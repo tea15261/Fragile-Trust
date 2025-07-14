@@ -27,6 +27,30 @@ export default class ItemManager {
                 type: "consumable",
                 defenseRestore: 30
             },
+            {
+                key: "luckPotion",
+                name: "Luck Potion",
+                description: "Increases your luck, leading to a variety of benefits.",
+                price: 40,
+                type: "consumable",
+                luckBoost: 20 
+            },
+            {
+            key: "agilityPotion",
+            name: "Agility Potion",
+            description: "Increases your agility, boosting your dodge chance.",
+            price: 25,
+            type: "consumable",
+            dodgeBoost: 15,
+            },
+            {
+            key: "skillBook",
+            name: "Skill Book",
+            description: "A rare book required to unlock a new skill. Consumed on use.",
+            price: 120,
+            type: "consumable",
+            unlocksSkill: true
+            },
             // Example: Loot items
             { key: "Weathered Bronze Band", name: "Weathered Bronze Band", description: "A rugged bronze band, worn with age.", price: 5, weight: 15, type: "loot" },
             { key: "Duskworn Ring", name: "Duskworn Ring", description: "A ring with a mysterious, dark allure.", price: 10, weight: 15, type: "loot" },
