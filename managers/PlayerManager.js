@@ -108,10 +108,24 @@ export default class PlayerManager {
 
         this.initInventory();
 
+        // Restore stats from localStorage if available
+        let savedStats = localStorage.getItem('playerPersistentStats')
+            ? JSON.parse(localStorage.getItem('playerPersistentStats'))
+            : {};
+        this.stats = { ...this.stats, ...savedStats };
+
+        // Update radar chart and stat texts to reflect loaded stats
         if (!this.inBattle) {
+            if (this.radarChart) this.radarChart.destroy();
             this.drawRadarChart(250, 85, 55, this.stats);
             this.displayStatValues(350, 35, this.stats);
+            this.animateRadarChartUpdate();
+            this.animateStatTextsUpdate();
         }
+    }
+
+    saveStatsToLocalStorage() {
+        localStorage.setItem('playerPersistentStats', JSON.stringify(this.stats));
     }
 
     showSkillTree() {
@@ -496,51 +510,220 @@ export default class PlayerManager {
     }
 
     updateInventoryDisplay() {
-        // Clear previous item images
-        this.inventoryItemsGroup.removeAll(true);
-        
-        // For each slot defined in inventorySlots, if there is an item, add its image.
-        this.inventorySlots.forEach(slot => {
-            const itemData = this.inventoryData[slot.index];
-            if (itemData) {
-                // Place the item image centered in the slot
-                const itemImage = this.scene.add.image(
-                    slot.x + 20, // center X in the cell (assuming cellSize ~40)
-                    slot.y + 20, // center Y
-                    itemData.key
-                )
-                    .setDisplaySize(40, 40)
-                    .setOrigin(0.5);
-                
-                // Instead of making the item draggable, simply set it interactive for tooltips.
-                itemImage.setInteractive();
-        
-                // Add hover events to show/hide tooltip
-                itemImage.on("pointerover", (pointer) => {
-                    this.createTooltip(itemData.key, pointer.x + 10, pointer.y + 10);
-                });
-                itemImage.on("pointerout", () => {
-                    this.destroyTooltip();
-                });
-                
-                this.inventoryItemsGroup.add(itemImage);
-                
-                // If count > 1, add a count label at the top-right of the slot with a black outline.
-                if (itemData.count > 1) {
-                    const countText = this.scene.add.text(
-                        slot.x + 35,
-                        slot.y + 5,
-                        `${itemData.count}`,
-                        {
-                            fontSize: "16px",
-                            fill: "#ffffff",
-                            stroke: "#000000",        // Black outline
-                            strokeThickness: 2         // Thickness of outline
-                        }
-                    ).setOrigin(1, 0);
-                    this.inventoryItemsGroup.add(countText);
+    // Clear previous item images
+    this.inventoryItemsGroup.removeAll(true);
+
+    // For each slot defined in inventorySlots, if there is an item, add its image.
+    this.inventorySlots.forEach(slot => {
+        const itemData = this.inventoryData[slot.index];
+        if (itemData) {
+            // Place the item image centered in the slot
+            const itemImage = this.scene.add.image(
+                slot.x + 20, // center X in the cell (assuming cellSize ~40)
+                slot.y + 20, // center Y
+                itemData.key
+            )
+                .setDisplaySize(40, 40)
+                .setOrigin(0.5);
+
+            itemImage.setInteractive();
+
+            // Add hover events to show/hide tooltip
+            itemImage.on("pointerover", (pointer) => {
+                this.createTooltip(itemData.key, pointer.x + 10, pointer.y + 10);
+            });
+            itemImage.on("pointerout", () => {
+                this.destroyTooltip();
+            });
+
+            // New pointerdown event for using consumables
+            itemImage.on("pointerdown", () => {
+                // Only allow using consumables (potions)
+                const itemData = this.inventoryData[slot.index];
+                if (!itemData) return;
+                const itemObj = this.lootManager.getLootItem(itemData.key);
+                if (!itemObj || itemObj.type !== "consumable") return;
+
+                let used = false;
+                // Health Potion
+                if (itemObj.healthRestore) {
+                    this.animateStatChange('health', this.stats.health, this.stats.health + itemObj.healthRestore);
+                    this.stats.health += itemObj.healthRestore;
+                    used = true;
                 }
+                // Mana Potion
+                if (itemObj.manaRestore) {
+                    this.animateStatChange('mana', this.stats.mana, this.stats.mana + itemObj.manaRestore);
+                    this.stats.mana += itemObj.manaRestore;
+                    used = true;
+                }
+                // Defense Potion
+                if (itemObj.defenseRestore) {
+                    this.animateStatChange('defense', this.stats.defense, this.stats.defense + itemObj.defenseRestore);
+                    this.stats.defense += itemObj.defenseRestore;
+                    used = true;
+                }
+                // Luck Potion
+                if (itemObj.luckBoost) {
+                    this.animateStatChange('luck', this.stats.luck, this.stats.luck + itemObj.luckBoost);
+                    this.stats.luck += itemObj.luckBoost;
+                    used = true;
+                }
+                // Agility Potion
+                if (itemObj.dodgeBoost) {
+                    this.animateStatChange('agility', this.stats.agility, this.stats.agility + itemObj.dodgeBoost);
+                    this.stats.agility += itemObj.dodgeBoost;
+                    used = true;
+                }
+
+                if (used) {
+                    // Remove one potion from inventory
+                    this.removeInventoryItem(itemObj.key, 1);
+                    // Save stats to localStorage
+                    this.saveStatsToLocalStorage();
+                    // Update inventory UI
+                    this.updateInventoryDisplay();
+                }
+            });
+
+            this.inventoryItemsGroup.add(itemImage);
+
+            // If count > 1, add a count label at the top-right of the slot with a black outline.
+            if (itemData.count > 1) {
+                const countText = this.scene.add.text(
+                    slot.x + 35,
+                    slot.y + 5,
+                    `${itemData.count}`,
+                    {
+                        fontSize: "16px",
+                        fill: "#ffffff",
+                        stroke: "#000000",        // Black outline
+                        strokeThickness: 2         // Thickness of outline
+                    }
+                ).setOrigin(1, 0);
+                this.inventoryItemsGroup.add(countText);
             }
+        }
+        });
+
+        // --- Animate and update radar chart and stat texts ---
+        if (this.radarChart) {
+            this.animateRadarChartUpdate();
+        }
+        if (this.statTexts) {
+            this.animateStatTextsUpdate();
+        }
+    }
+
+    // Animate a single stat value (for statTexts)
+    animateStatChange(statKey, fromValue, toValue) {
+        if (!this.statTexts) return;
+        const axes = ["health", "defense", "attack", "speed", "luck", "agility", "mana"];
+        const index = axes.indexOf(statKey);
+        if (index === -1 || !this.statTexts[index]) return;
+
+        const textObj = this.statTexts[index];
+        this.scene.tweens.addCounter({
+            from: fromValue,
+            to: toValue,
+            duration: 400,
+            onUpdate: tween => {
+                const val = Math.round(tween.getValue());
+                textObj.setText(`${statKey.charAt(0).toUpperCase() + statKey.slice(1)}: ${val}`);
+            }
+        });
+    }
+
+    // Animate radar chart update
+    animateRadarChartUpdate() {
+        if (!this.radarChart) return;
+        const axes = ["health", "defense", "attack", "speed", "luck", "agility", "mana"];
+        const numAxes = axes.length;
+        const maxValues = {
+            health: 500,
+            defense: 250,
+            attack: 250,
+            speed: 420,
+            luck: 160,
+            agility: 250,
+            mana: 250
+        };
+        // Get current stats
+        const startStats = {};
+        axes.forEach((stat, i) => {
+            const textObj = this.statTexts[i];
+            const match = textObj.text.match(/: (\d+)/);
+            startStats[stat] = match ? parseInt(match[1]) : 0;
+        });
+        const endStats = { ...this.stats };
+
+        this.scene.tweens.addCounter({
+            from: 0,
+            to: 1,
+            duration: 400,
+            onUpdate: tween => {
+                const t = tween.getValue();
+                const interpStats = {};
+                axes.forEach(stat => {
+                    interpStats[stat] = Math.round(
+                        startStats[stat] + (endStats[stat] - startStats[stat]) * t
+                    );
+                });
+                // Redraw radar chart
+                this.radarChart.clear();
+                // Semi-transparent background
+                this.radarChart.fillStyle(0x000000, 0.5);
+                this.radarChart.fillCircle(250, 85, 65); // radius + 10
+                this.radarChart.lineStyle(1, 0xffffff, 0.5);
+                const gridLevels = 5;
+                const radius = 55;
+                const x = 250, y = 85;
+                for (let level = 1; level <= gridLevels; level++) {
+                    const levelRadius = (radius * level) / gridLevels;
+                    const points = [];
+                    for (let i = 0; i < numAxes; i++) {
+                        const angle = Phaser.Math.DegToRad((360 / numAxes) * i - 90);
+                        const dx = x + levelRadius * Math.cos(angle);
+                        const dy = y + levelRadius * Math.sin(angle);
+                        points.push(new Phaser.Math.Vector2(dx, dy));
+                    }
+                    this.radarChart.strokePoints(points, true);
+                }
+                // Draw axis lines
+                for (let i = 0; i < numAxes; i++) {
+                    const angle = Phaser.Math.DegToRad((360 / numAxes) * i - 90);
+                    const dx = x + radius * Math.cos(angle);
+                    const dy = y + radius * Math.sin(angle);
+                    this.radarChart.lineBetween(x, y, dx, dy);
+                }
+                // Data points
+                const dataPoints = [];
+                for (let i = 0; i < numAxes; i++) {
+                    const stat = axes[i];
+                    const value = interpStats[stat] !== undefined ? interpStats[stat] : 0;
+                    const maxValue = maxValues[stat];
+                    const proportion = Phaser.Math.Clamp(value / maxValue, 0, 1);
+                    const dataRadius = proportion * radius;
+                    const angle = Phaser.Math.DegToRad((360 / numAxes) * i - 90);
+                    const dx = x + dataRadius * Math.cos(angle);
+                    const dy = y + dataRadius * Math.sin(angle);
+                    dataPoints.push(new Phaser.Math.Vector2(dx, dy));
+                }
+                this.radarChart.fillStyle(0xff0000, 0.3);
+                this.radarChart.fillPoints(dataPoints, true);
+                this.radarChart.lineStyle(2, 0xff0000, 1);
+                this.radarChart.strokePoints(dataPoints, true);
+            }
+        });
+    }
+
+    // Animate all stat texts (for non-consumable changes)
+    animateStatTextsUpdate() {
+        if (!this.statTexts) return;
+        const axes = ["health", "defense", "attack", "speed", "luck", "agility", "mana"];
+        axes.forEach((stat, i) => {
+            if (!this.statTexts[i]) return;
+            this.statTexts[i].setText(`${stat.charAt(0).toUpperCase() + stat.slice(1)}: ${this.stats[stat] !== undefined ? this.stats[stat] : 0}`);
         });
     }
 
@@ -718,6 +901,8 @@ export default class PlayerManager {
         this.shadow.setVisible(true); 
     }
 
+    
+
     hideUI() {
         if(!this.inBattle) {
             this.inventoryButton.visible = false;
@@ -742,6 +927,16 @@ export default class PlayerManager {
         this.inventoryVisible = false;
         this.scene.physics.resume();
         this.scene.anims.resumeAll();
+
+        // --- Hide any open tooltip when closing inventory or skill tree ---
+        if (this.tooltip) {
+            this.tooltip.destroy();
+            this.tooltip = null;
+        }
+        if (this.skillTreeUI && this.skillTreeUI.tooltip) {
+            this.skillTreeUI.tooltip.destroy();
+            this.skillTreeUI.tooltip = null;
+        }
     }
 
     createAnimations() {
