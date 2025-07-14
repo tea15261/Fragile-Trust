@@ -1,3 +1,5 @@
+import ItemManager from '/managers/ItemManager.js';
+
 let pinnedItem = null;
 let isSliderDragging = false;
 let currentSellValue = 0;
@@ -7,6 +9,7 @@ export default class ShopManager {
     constructor(scene, playerManager) {
         this.scene = scene;
         this.playerManager = playerManager;
+        this.itemManager = new ItemManager();
         this.shopContainer = null;
         this.init();
     }
@@ -132,65 +135,62 @@ export default class ShopManager {
         buyGridBg.fillRoundedRect(0, 0, buyGridAreaWidth, buyGridAreaHeight + 20, 10);
         buyGridContainer.add(buyGridBg);
         
-        // Only show health potion for now
-        const healthPotionData = {
-            key: 'healthPotion',
-            name: 'Health Potion',
-            price: 25,
-            description: 'Restores a moderate amount of health.'
-        };
+        // Instead of const healthPotionData = {...}
+        const shopItems = this.itemManager.getShopItems();
+        shopItems.forEach((item, i) => {
+            const row = Math.floor(i / buyCols);
+            const col = i % buyCols;
+            const buySlotX = buySlotGap + col * (buySlotSize + buySlotGap);
+            const buySlotY = buySlotGap + row * (buySlotSize + buySlotGap);
 
-        const buySlotX = buySlotGap + 0 * (buySlotSize + buySlotGap);
-        const buySlotY = buySlotGap + 0 * (buySlotSize + buySlotGap);
+            // Create a container for the item card
+            const cardContainer = this.scene.add.container(buySlotX, buySlotY);
 
-        // Create a container for the item card
-        const potionCardContainer = this.scene.add.container(buySlotX, buySlotY);
-
-        // Card background with border and shadow
-        const cardBg = this.scene.add.graphics();
-        cardBg.fillStyle(0x292929, 0.95); // Slightly lighter than grid bg
-        cardBg.fillRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
-        cardBg.lineStyle(2, 0xFFD700, 1); // Gold border
-        cardBg.strokeRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
-        // Optional: subtle shadow effect
-        cardBg.setAlpha(0.98);
-
-        // Health potion image
-        const healthPotionImage = this.scene.add.image(
-            buySlotSize / 2 + 11,
-            buySlotSize / 2 + 9,
-            healthPotionData.key
-        )
-            .setDisplaySize(buySlotSize - 12, buySlotSize - 12)
-            .setOrigin(0.5);
-        healthPotionImage.setInteractive({ useHandCursor: true });
-
-        // Add hover effect
-        healthPotionImage.on('pointerover', () => {
-            cardBg.clear();
-            cardBg.fillStyle(0x333333, 1);
-            cardBg.fillRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
-            cardBg.lineStyle(2, 0xFFD700, 1);
-            cardBg.strokeRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
-        });
-        healthPotionImage.on('pointerout', () => {
-            cardBg.clear();
+            // Card background with border and shadow
+            const cardBg = this.scene.add.graphics();
             cardBg.fillStyle(0x292929, 0.95);
             cardBg.fillRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
             cardBg.lineStyle(2, 0xFFD700, 1);
             cardBg.strokeRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
+            cardBg.setAlpha(0.98);
+
+            // Item image
+            const itemImage = this.scene.add.image(
+                buySlotSize / 2,
+                buySlotSize / 2,
+                item.key
+            )
+                .setDisplaySize(buySlotSize - 12, buySlotSize - 12)
+                .setOrigin(0.5);
+            itemImage.setInteractive({ useHandCursor: true });
+
+            // Add hover effect
+            itemImage.on('pointerover', () => {
+                cardBg.clear();
+                cardBg.fillStyle(0x333333, 1);
+                cardBg.fillRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
+                cardBg.lineStyle(2, 0xFFD700, 1);
+                cardBg.strokeRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
+            });
+            itemImage.on('pointerout', () => {
+                cardBg.clear();
+                cardBg.fillStyle(0x292929, 0.95);
+                cardBg.fillRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
+                cardBg.lineStyle(2, 0xFFD700, 1);
+                cardBg.strokeRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
+            });
+
+            // Show details when clicking the item
+            itemImage.on("pointerdown", () => {
+                updateBuyRightDetail(item);
+            });
+
+            // Add all elements to the card container
+            cardContainer.add([cardBg, itemImage]);
+
+            // Add the card container to the grid
+            buyGridContainer.add(cardContainer);
         });
-
-        // Show details when clicking the health potion
-        healthPotionImage.on("pointerdown", () => {
-            updateBuyRightDetail(healthPotionData);
-        });
-
-        // Add all elements to the card container
-        potionCardContainer.add([cardBg, healthPotionImage]);
-
-        // Add the card container to the grid
-        buyGridContainer.add(potionCardContainer);
 
         const buyRightPanelX = buyGridAreaWidth + 30;
         const buyRightPanelWidth = boxWidth - buyRightPanelX - 20;
@@ -320,7 +320,25 @@ export default class ShopManager {
                 // Buying logic
                 if (this.playerManager.stats.coins >= item.price) {
                     this.playerManager.stats.coins -= item.price;
+
+                    // Add to inventoryData and update UI
                     this.playerManager.addInventoryItem(item.key);
+
+                    // Also add to inventory array if not already present (for legacy support)
+                    // (If you want to stack, you can check for existing item and increment count)
+                    let found = false;
+                    for (let invItem of this.playerManager.inventory) {
+                        if (invItem.key === item.key) {
+                            invItem.count = (invItem.count || 1) + 1;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        this.playerManager.inventory.push({ key: item.key, count: 1 });
+                    }
+                    localStorage.setItem('inventory', JSON.stringify(this.playerManager.inventory));
+
                     coinText.setText(`Coins: ${this.playerManager.stats.coins}`);
 
                     // --- Animate the coin loss popup (red, floating up and fading out) ---
@@ -421,16 +439,7 @@ export default class ShopManager {
             buyRightDetail.bringToTop(buyDynamicDetailContainer);
         };
 
-        // Show details when clicking the health potion
-        healthPotionImage.on("pointerdown", () => {
-            updateBuyRightDetail(healthPotionData);
-        });
-
-        // Add to grid and right panel
-        buyGridContainer.add(healthPotionImage);
         buyContent.add([buyGridContainer, buyRightDetail]);
-
-        // Show default detail panel
         updateBuyRightDetail(null);
 
         // Improved coin gain popup style
@@ -520,7 +529,8 @@ export default class ShopManager {
                 const contentHeight = rightPanelHeight - sliderReservedHeight;
         
                 // Create item title.
-                const nameText = this.scene.add.text(rightPanelWidth / 2, 10, item.key, {
+                const itemName = this.itemManager.getItem(item.key)?.name || item.key;
+                    const nameText = this.scene.add.text(rightPanelWidth / 2, 10, itemName, {
                     fontSize: '16px',
                     fill: '#FFD700',
                     fontFamily: 'Arial',
@@ -548,7 +558,7 @@ export default class ShopManager {
                     align: 'center',
                     wordWrap: { width: rightPanelWidth - 20 }
                 }).setOrigin(0.5, 0);
-        
+
                 // Adjust description text size if needed.
                 const descriptionMaxHeight = contentHeight - (itemImage.y + itemImage.displayHeight + 10);
                 if (descriptionText.height > descriptionMaxHeight) {

@@ -445,44 +445,46 @@ export default class PlayerManager {
             this.tooltip.destroy();
             this.tooltip = null;
         }
-    
-        // Get the description for the item from LootManager
-        const description = this.lootManager.getDescription(itemKey) || "No description available.";
-    
+
+        // Get the loot object for the item
+        const lootObj = this.lootManager.getLootItem(itemKey);
+        const itemName = lootObj && lootObj.name ? lootObj.name : itemKey;
+        const description = lootObj && lootObj.description ? lootObj.description : "No description available.";
+
         // Create the tooltip background
         const padding = 10;
         const tooltipBg = this.scene.add.graphics();
         tooltipBg.fillStyle(0x000000, 0.8);
         tooltipBg.fillRoundedRect(0, 0, 200, 60, 8);
-    
-        // Create the item name text
-        const nameText = this.scene.add.text(10, 5, itemKey, {
+
+        // Create the item name text (now using itemName)
+        const nameText = this.scene.add.text(10, 5, itemName, {
             fontSize: "14px",
             fill: "#FFD700",
             fontStyle: "bold"
         });
-    
+
         // Create the description text
         const descriptionText = this.scene.add.text(10, 25, description, {
             fontSize: "12px",
             fill: "#FFFFFF",
             wordWrap: { width: 180 }
         });
-    
+
         // Create a container for the tooltip
         this.tooltip = this.scene.add.container(x, y, [tooltipBg, nameText, descriptionText]);
-    
+
         // Adjust the background size to fit the text
         const bgWidth = Math.max(nameText.width, descriptionText.width) + padding * 2;
         const bgHeight = nameText.height + descriptionText.height + padding * 2;
         tooltipBg.clear();
         tooltipBg.fillStyle(0x000000, 0.8);
         tooltipBg.fillRoundedRect(0, 0, bgWidth, bgHeight, 8);
-    
+
         // Adjust the position of the text
         nameText.setPosition(padding, padding);
         descriptionText.setPosition(padding, nameText.height + padding);
-    
+
         this.tooltip.setDepth(9);
     }
     
