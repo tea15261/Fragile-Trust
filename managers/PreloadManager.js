@@ -25,6 +25,9 @@ export default class PreloadManager {
         scene.load.image('Azure Jewel Band', 'assets/items/Azure Jewel Band.png');
         scene.load.image('Verdant Inlay Ring', 'assets/items/Verdant Inlay Ring.png');
 
+        // potion assets
+        scene.load.image('healthPotion', ' assets/items/Health Potion.png');
+
         
         // environment assets
         scene.load.image('forest', 'assets/environment/forest-backdrop.png');

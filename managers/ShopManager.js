@@ -112,8 +112,357 @@ export default class ShopManager {
         tabContainer.add([tabBuy, tabSell, tabLucky]);
 
         const buyContent = this.scene.add.container(10, 10);
+        buyContent.setSize(boxWidth, boxHeight);
 
-        // Create the sellContent container
+        // Left Panel: Shop Grid (items to buy)
+        const buyGridAreaWidth = 300;
+        const buyGridAreaHeight = boxHeight - 40;
+        const buySlotGap = 10;
+        const buyCols = 5;
+        const buyRows = 3;
+        const buySlotSize = Math.floor((buyGridAreaWidth - (buyCols + 1) * buySlotGap) / buyCols);
+        const buyGridX = 0;
+        const buyGridY = 0;
+
+        const buyGridContainer = this.scene.add.container(buyGridX, buyGridY);
+
+        // Grid background
+        const buyGridBg = this.scene.add.graphics();
+        buyGridBg.fillStyle(0x222222, 0.7);
+        buyGridBg.fillRoundedRect(0, 0, buyGridAreaWidth, buyGridAreaHeight + 20, 10);
+        buyGridContainer.add(buyGridBg);
+        
+        // Only show health potion for now
+        const healthPotionData = {
+            key: 'healthPotion',
+            name: 'Health Potion',
+            price: 25,
+            description: 'Restores a moderate amount of health.'
+        };
+
+        const buySlotX = buySlotGap + 0 * (buySlotSize + buySlotGap);
+        const buySlotY = buySlotGap + 0 * (buySlotSize + buySlotGap);
+
+        // Create a container for the item card
+        const potionCardContainer = this.scene.add.container(buySlotX, buySlotY);
+
+        // Card background with border and shadow
+        const cardBg = this.scene.add.graphics();
+        cardBg.fillStyle(0x292929, 0.95); // Slightly lighter than grid bg
+        cardBg.fillRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
+        cardBg.lineStyle(2, 0xFFD700, 1); // Gold border
+        cardBg.strokeRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
+        // Optional: subtle shadow effect
+        cardBg.setAlpha(0.98);
+
+        // Health potion image
+        const healthPotionImage = this.scene.add.image(
+            buySlotSize / 2 + 11,
+            buySlotSize / 2 + 9,
+            healthPotionData.key
+        )
+            .setDisplaySize(buySlotSize - 12, buySlotSize - 12)
+            .setOrigin(0.5);
+        healthPotionImage.setInteractive({ useHandCursor: true });
+
+        // Add hover effect
+        healthPotionImage.on('pointerover', () => {
+            cardBg.clear();
+            cardBg.fillStyle(0x333333, 1);
+            cardBg.fillRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
+            cardBg.lineStyle(2, 0xFFD700, 1);
+            cardBg.strokeRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
+        });
+        healthPotionImage.on('pointerout', () => {
+            cardBg.clear();
+            cardBg.fillStyle(0x292929, 0.95);
+            cardBg.fillRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
+            cardBg.lineStyle(2, 0xFFD700, 1);
+            cardBg.strokeRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
+        });
+
+        // Show details when clicking the health potion
+        healthPotionImage.on("pointerdown", () => {
+            updateBuyRightDetail(healthPotionData);
+        });
+
+        // Add all elements to the card container
+        potionCardContainer.add([cardBg, healthPotionImage]);
+
+        // Add the card container to the grid
+        buyGridContainer.add(potionCardContainer);
+
+        const buyRightPanelX = buyGridAreaWidth + 30;
+        const buyRightPanelWidth = boxWidth - buyRightPanelX - 20;
+        const buyRightPanelHeight = buyGridAreaHeight + 20;
+        const buyRightDetail = this.scene.add.container(buyRightPanelX, 0);
+
+        const buyDetailBg = this.scene.add.graphics();
+        buyDetailBg.fillStyle(0x222222, 0.7);
+        buyDetailBg.fillRoundedRect(0, 0, buyRightPanelWidth, buyRightPanelHeight, 10);
+        buyRightDetail.add(buyDetailBg);
+
+        const buyDynamicDetailContainer = this.scene.add.container(0, 0);
+        buyRightDetail.add(buyDynamicDetailContainer);
+
+        // Function to update right detail panel for buying
+        const updateBuyRightDetail = (item) => {
+            buyDynamicDetailContainer.removeAll(true);
+
+            if (item) {
+                const nameText = this.scene.add.text(buyRightPanelWidth / 2, 10, item.name, {
+                    fontSize: '16px',
+                    fill: '#FFD700',
+                    fontFamily: 'Arial',
+                    fontStyle: 'bold',
+                    align: 'center',
+                    wordWrap: { width: buyRightPanelWidth - 20 }
+                }).setOrigin(0.5, 0);
+
+                const itemImage = this.scene.add.image(buyRightPanelWidth / 2, 40, item.key)
+                    .setDisplaySize(60, 60)
+                    .setOrigin(0.5, 0);
+
+                const descriptionText = this.scene.add.text(buyRightPanelWidth / 2, 110, item.description, {
+                    fontSize: '12px',
+                    fill: '#FFFFFF',
+                    fontFamily: 'Arial',
+                    align: 'center',
+                    wordWrap: { width: buyRightPanelWidth - 20 }
+                }).setOrigin(0.5, 0);
+
+                // Price label
+                const priceText = this.scene.add.text(
+                    buyRightPanelWidth / 2,
+                    180,
+                    `Price: ${item.price} coins`,
+                    {
+                        fontSize: '14px',
+                        fill: '#FFD700',
+                        fontFamily: 'Arial',
+                        fontStyle: 'bold'
+                    }
+                ).setOrigin(0.5, 0);
+
+                // Buy button
+                const buyButtonWidth = 100;
+                const buyButtonHeight = 30;
+                const buyButtonX = buyRightPanelWidth / 2 - buyButtonWidth / 2;
+                const buyButtonY = 210;
+
+                const buyButtonBg = this.scene.add.graphics();
+                buyButtonBg.fillStyle(0xFFD700, 1);
+                buyButtonBg.fillRoundedRect(buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, 5);
+                buyButtonBg.lineStyle(2, 0xFFFFFF, 1);
+                buyButtonBg.strokeRoundedRect(buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, 5);
+                buyButtonBg.setInteractive(new Phaser.Geom.Rectangle(buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight), Phaser.Geom.Rectangle.Contains);
+
+                const buyButtonText = this.scene.add.text(
+                    buyButtonX + buyButtonWidth / 2,
+                    buyButtonY + buyButtonHeight / 2,
+                    "Buy",
+                    {
+                        fontSize: "16px",
+                        fill: "#000000",
+                        fontFamily: "Arial",
+                        fontStyle: "bold",
+                        align: "center"
+                    }
+                ).setOrigin(0.5, 0.5);
+
+                // Add hover effect
+                buyButtonBg.on('pointerover', () => {
+                    buyButtonBg.clear();
+                    buyButtonBg.fillStyle(0xFFFACD, 1); // Lighter gold color on hover
+                    buyButtonBg.fillRoundedRect(buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, 5);
+                    buyButtonBg.lineStyle(2, 0xFFFFFF, 1); // White border
+                    buyButtonBg.strokeRoundedRect(buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, 5);
+
+                    // Show red coin loss popup
+                    this.coinGainPopup.setText(`-${item.price}`);
+                    this.coinGainPopup.setStyle({ fill: '#FF4444' });
+                    this.coinGainPopup.setVisible(true);
+                });
+
+                // Remove hover effect
+                buyButtonBg.on('pointerout', () => {
+                    buyButtonBg.clear();
+                    buyButtonBg.fillStyle(0xFFD700, 1); // Original gold color
+                    buyButtonBg.fillRoundedRect(buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, 5);
+                    buyButtonBg.lineStyle(2, 0xFFFFFF, 1); // White border
+                    buyButtonBg.strokeRoundedRect(buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, 5);
+
+                    // Hide coin loss popup
+                    this.coinGainPopup.setVisible(false);
+                });
+
+                // Add click effect and buying logic
+                buyButtonBg.on('pointerdown', () => {
+                // Click visual effect
+                buyButtonBg.clear();
+                buyButtonBg.fillStyle(0xFFC107, 1); // Pressed color
+                buyButtonBg.fillRoundedRect(buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, 5);
+                buyButtonBg.lineStyle(2, 0xFFFFFF, 1);
+                buyButtonBg.strokeRoundedRect(buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, 5);
+
+                // Hide coin loss popup (will animate it instead)
+                this.coinGainPopup.setVisible(false);
+
+                // Reset to default after a short delay
+                this.scene.time.delayedCall(100, () => {
+                    buyButtonBg.clear();
+                    buyButtonBg.fillStyle(0xFFD700, 1);
+                    buyButtonBg.fillRoundedRect(buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, 5);
+                    buyButtonBg.lineStyle(2, 0xFFFFFF, 1);
+                    buyButtonBg.strokeRoundedRect(buyButtonX, buyButtonY, buyButtonWidth, buyButtonHeight, 5);
+                });
+
+                // Buying logic
+                if (this.playerManager.stats.coins >= item.price) {
+                    this.playerManager.stats.coins -= item.price;
+                    this.playerManager.addInventoryItem(item.key);
+                    coinText.setText(`Coins: ${this.playerManager.stats.coins}`);
+
+                    // --- Animate the coin loss popup (red, floating up and fading out) ---
+                    const initialPopupY = coinText.y - 17;
+                    this.coinGainPopup.setText(`-${item.price}`);
+                    this.coinGainPopup.setStyle({ fill: '#FF4444' });
+                    this.coinGainPopup.setVisible(true);
+                    this.coinGainPopup.alpha = 1;
+                    this.coinGainPopup.y = initialPopupY;
+
+                    this.scene.tweens.add({
+                        targets: this.coinGainPopup,
+                        y: initialPopupY - 20, // move 20 pixels up
+                        alpha: 0,
+                        duration: 500,
+                        ease: 'Power2',
+                        onComplete: () => {
+                            this.coinGainPopup.setVisible(false);
+                            this.coinGainPopup.alpha = 1;
+                            this.coinGainPopup.y = initialPopupY;
+                        }
+                    });
+
+                    // --- Animate the coin text pop ---
+                    this.scene.tweens.add({
+                        targets: coinText,
+                        scale: { from: 1.2, to: 1 },
+                        duration: 300,
+                        ease: 'Power2'
+                    });
+                } else {
+                    // --- Not enough coins: shake the button and show warning text ---
+                    this.scene.tweens.add({
+                        targets: buyButtonBg,
+                        x: { from: buyButtonBg.x, to: buyButtonBg.x + 10 },
+                        yoyo: true,
+                        repeat: 5,
+                        duration: 40,
+                        onComplete: () => { buyButtonBg.x = 0; }
+                    });
+
+                    // Show red warning text above the button
+                    const warningText = this.scene.add.text(
+                        buyButtonX + buyButtonWidth / 2,
+                        buyButtonY - 18,
+                        "Not enough coins!",
+                        {
+                            fontSize: "15px",
+                            fill: "#FF4444",
+                            fontFamily: "Arial",
+                            fontStyle: "bold",
+                            stroke: "#000000",
+                            strokeThickness: 2
+                        }
+                    ).setOrigin(0.5);
+
+                    buyDynamicDetailContainer.add(warningText);
+
+                    this.scene.tweens.add({
+                        targets: warningText,
+                        y: warningText.y - 20,
+                        alpha: 0,
+                        duration: 900,
+                        ease: 'Power2',
+                        onComplete: () => warningText.destroy()
+                    });
+                }
+            });
+
+                // --- Add hover effect for coin loss popup ---
+                buyButtonBg.on('pointerover', () => {
+                    this.coinGainPopup.setText(`-${item.price}`);
+                    this.coinGainPopup.setStyle({ fill: '#FF4444' }); // Red color
+                    this.coinGainPopup.setVisible(true);
+                });
+                buyButtonBg.on('pointerout', () => {
+                    this.coinGainPopup.setVisible(false);
+                });
+
+                buyDynamicDetailContainer.add([nameText, itemImage, descriptionText, priceText, buyButtonBg, buyButtonText]);
+            } else {
+                // Default message
+                const noSelectText = this.scene.add.text(
+                    buyRightPanelWidth / 2,
+                    buyRightPanelHeight / 2,
+                    "No item selected",
+                    {
+                        fontSize: '20px',
+                        fill: '#FFD700',
+                        fontFamily: 'Arial',
+                        fontStyle: 'bold',
+                        align: 'center',
+                        wordWrap: { width: buyRightPanelWidth - 20, useAdvancedWrap: true }
+                    }
+                ).setOrigin(0.5);
+                buyDynamicDetailContainer.add(noSelectText);
+            }
+            buyRightDetail.bringToTop(buyDynamicDetailContainer);
+        };
+
+        // Show details when clicking the health potion
+        healthPotionImage.on("pointerdown", () => {
+            updateBuyRightDetail(healthPotionData);
+        });
+
+        // Add to grid and right panel
+        buyGridContainer.add(healthPotionImage);
+        buyContent.add([buyGridContainer, buyRightDetail]);
+
+        // Show default detail panel
+        updateBuyRightDetail(null);
+
+        // Improved coin gain popup style
+        this.coinGainPopup = this.scene.add.text(
+            coinText.x + 75, 
+            coinText.y - 17, 
+            '', 
+            {
+                fontSize: '18px',
+                fill: '#00FF00',
+                fontFamily: 'Verdana',
+                fontStyle: 'bold',
+                stroke: '#000000',
+                strokeThickness: 2,
+                shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 2, stroke: true, fill: true }
+            }
+        ).setOrigin(0, 0);
+        this.coinGainPopup.setVisible(false);
+        this.shopContainer.add(this.coinGainPopup);
+
+        
+        contentBox.lineStyle(3, 0xffffff, 0.8);
+        contentBox.strokeRoundedRect(0, 0, boxWidth, boxHeight, 10);
+
+        
+        contentBoxContainer.setDepth(9);
+
+
+
+
+        tabContainer.add([tabBuy, tabSell, tabLucky]);
+
         const sellContent = this.scene.add.container(10, 10);
         sellContent.setSize(boxWidth, boxHeight);
 
@@ -272,6 +621,7 @@ export default class ShopManager {
                     // Update the global coin gain popup live.
                     if (value > 0) {
                         this.coinGainPopup.setText(`+${price * value}`);
+                        this.coinGainPopup.setStyle({ fill: '#00FF00' });
                         this.coinGainPopup.setVisible(true);
                     } else {
                         this.coinGainPopup.setVisible(false);
@@ -775,9 +1125,6 @@ export default class ShopManager {
         // Call the helper function to load the gambling buttons
         loadGamblingButtons();
 
-        const fillerStyle = { fontSize: '20px', fill: '#FFD700', fontFamily: 'Arial', fontStyle: 'bold' };
-        buyContent.add(this.scene.add.text(0, 0, "Placeholder for buying", fillerStyle));
-
         buyContent.setVisible(true);
         sellContent.setVisible(false);
         luckyContent.setVisible(false);
@@ -821,7 +1168,12 @@ export default class ShopManager {
         
             buyContent.setVisible(activeContent === 0);
             sellContent.setVisible(activeContent === 1);
-            
+
+            // Hide the coin gain popup if not on the sell tab
+            if (activeContent !== 1 && this.coinGainPopup) {
+                this.coinGainPopup.setVisible(false);
+            }
+
             // When Lucky Mug tab is activated, re-load the gambling buttons.
             if (activeContent === 2) {
                 luckyContent.setVisible(true);
