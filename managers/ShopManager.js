@@ -1264,6 +1264,12 @@ export default class ShopManager {
             } else {
                 luckyContent.setVisible(false);
             }
+
+            // --- Always update buy card borders when switching tabs ---
+            if (this.cardBorderUpdaters && Array.isArray(this.cardBorderUpdaters)) {
+                this.cardBorderUpdaters.forEach(fn => fn());
+            }
+
         };
 
         tabBuy.getAt(0).on('pointerdown', () => setActiveTab(0, 0));
