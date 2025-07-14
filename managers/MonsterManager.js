@@ -206,11 +206,13 @@ export default class MonsterManager {
         if(this.monster) {
             this.monster.destroy();
             this.shadow.destroy();
+            if (this.monsterHands) this.monsterHands.destroy();
         }
 
         this.shadow = this.scene.add.ellipse(posX, posY + 8, 30, 10, 0x000000, 0.5);
         this.shadow.setOrigin(-1.8, -10.2);
 
+        // Create the monster sprite and play idle animation
         if (this.currentMonsterType === 'SkeletonBase') {
             this.monster = this.scene.add.sprite(posX, posY, 'SkeletonBaseIdle');
             this.monster.play('skeletonBaseIdle');
@@ -245,11 +247,49 @@ export default class MonsterManager {
         
         this.monster.setOrigin(0.5, 0.5);
         this.monster.setSize(32, 32);
+
+        // --- Monster Hands ---
+        // Create the monsterHoldHands animation if it doesn't exist
+        if (!this.scene.anims.exists('monster-hold-hands-idle')) {
+            this.scene.anims.create({
+                key: 'monster-hold-hands-idle',
+                frames: this.scene.anims.generateFrameNumbers('monsterHoldHands', { start: 0, end: 3 }),
+                frameRate: 10,
+                repeat: -1
+            });
+        }
+
+        // Position the hands where the monster's hands should be (tweak offsets as needed)
+        let handsOffset = { x: 0, y: 16 };
+        if (this.currentMonsterType.startsWith('Orc')) {
+            handsOffset = { x: 0, y: 16 };
+        } else if (this.currentMonsterType.startsWith('Skeleton')) {
+            handsOffset = { x: 0, y: 16 };
+        }
+
+        this.monsterHands = this.scene.add.sprite(
+            this.monster.x + 73 + handsOffset.x,
+            this.monster.y + 84 + handsOffset.y,
+            'monsterHoldHands'
+        );
+        this.monsterHands.setOrigin(0.5, 0.5);
+        this.monsterHands.play('monster-hold-hands-idle');
+
+        // Ensure hands are above the shadow but below the monster sprite
+        this.monsterHands.setDepth(this.monster.depth + 1);
+        this.monster.setDepth(this.monster.depth);
+
+        // Optionally, update hands position in update loop if monster moves/animates
     }
 
     playDeathAnimation() {
         const currentX = this.monster.x;
         const currentY = this.monster.y;
+
+        // Hide the monster hands immediately on death
+        if (this.monsterHands) {
+            this.monsterHands.setVisible(false);
+        }
 
         if (this.currentMonsterType === 'SkeletonBase') {
             this.monster.play('skeletonBaseDeath');
@@ -318,5 +358,21 @@ export default class MonsterManager {
     reset() {
         this.generateNewMonster();
         this.show();
+    }
+
+    update() {
+        if (this.monster && this.monsterHands) {
+            // Use the same offset logic as in createMonster
+            let handsOffset = { x: 0, y: 1 };
+            if (this.currentMonsterType && this.currentMonsterType.startsWith('Orc')) {
+                handsOffset = { x: 0, y: 2 };
+            } else if (this.currentMonsterType && this.currentMonsterType.startsWith('Skeleton')) {
+                handsOffset = { x: 0, y: 1 };
+            }
+            this.monsterHands.x = this.monster.x + handsOffset.x;
+            this.monsterHands.y = this.monster.y + handsOffset.y;
+            // Optionally, match flipX if your monsters flip
+            this.monsterHands.flipX = this.monster.flipX;
+        }
     }
 }
