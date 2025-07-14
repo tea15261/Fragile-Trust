@@ -11,6 +11,7 @@ export default class ShopManager {
         this.playerManager = playerManager;
         this.itemManager = new ItemManager();
         this.shopContainer = null;
+        this.cardBorderUpdaters = [];
         this.init();
     }
 
@@ -150,9 +151,66 @@ export default class ShopManager {
             const cardBg = this.scene.add.graphics();
             cardBg.fillStyle(0x292929, 0.95);
             cardBg.fillRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
-            cardBg.lineStyle(2, 0xFFD700, 1);
+
+            // Determine initial border color based on coins
+            let borderColor = (this.playerManager.stats.coins >= item.price) ? 0x00FF00 : 0xFF4444; // green or red
+            cardBg.lineStyle(2, borderColor, 1);
             cardBg.strokeRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
             cardBg.setAlpha(0.98);
+
+            // Function to smoothly update border color
+            const updateCardBorderColor = () => {
+                const enoughCoins = this.playerManager.stats.coins >= item.price;
+                const targetColor = enoughCoins ? 0x00FF00 : 0xFF4444;
+                if (cardBg._currentBorderColor !== targetColor) {
+                    this.scene.tweens.addCounter({
+                        from: cardBg._currentBorderColor || borderColor,
+                        to: targetColor,
+                        duration: 250,
+                        onUpdate: tween => {
+                            const value = Phaser.Display.Color.Interpolate.ColorWithColor(
+                                Phaser.Display.Color.IntegerToColor(cardBg._currentBorderColor || borderColor),
+                                Phaser.Display.Color.IntegerToColor(targetColor),
+                                100,
+                                tween.progress * 100
+                            );
+                            const color = Phaser.Display.Color.GetColor(value.r, value.g, value.b);
+                            cardBg.clear();
+                            cardBg.fillStyle(0x292929, 0.95);
+                            cardBg.fillRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
+                            cardBg.lineStyle(2, color, 1);
+                            cardBg.strokeRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
+                            cardBg.setAlpha(0.98);
+                            cardBg._currentBorderColor = color;
+                        },
+                        onComplete: () => {
+                            cardBg._currentBorderColor = targetColor;
+                        }
+                    });
+                }
+            };
+            cardBg._currentBorderColor = borderColor;
+
+            // Listen for coin changes and update border color
+            if (!this._shopCoinListener) {
+                this._shopCoinListener = () => {
+                    buyGridContainer.iterate(child => {
+                        if (child && child.list) {
+                            child.list.forEach(el => {
+                                if (el && el._currentBorderColor !== undefined && el.updateCardBorderColor) {
+                                    el.updateCardBorderColor();
+                                }
+                            });
+                        }
+                    });
+                };
+                this.playerManager.onCoinsChanged = this._shopCoinListener;
+            }
+            cardBg.updateCardBorderColor = updateCardBorderColor;
+            this.cardBorderUpdaters.push(updateCardBorderColor);
+
+            // Call once to set initial color
+            updateCardBorderColor();
 
             // Item image
             const itemImage = this.scene.add.image(
@@ -169,14 +227,22 @@ export default class ShopManager {
                 cardBg.clear();
                 cardBg.fillStyle(0x333333, 1);
                 cardBg.fillRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
-                cardBg.lineStyle(2, 0xFFD700, 1);
+
+                // Determine if the user has enough coins
+                const enoughCoins = this.playerManager.stats.coins >= item.price;
+                // Use a brighter green or red for hover
+                const hoverColor = enoughCoins ? 0x66FF66 : 0xFF8888;
+                cardBg.lineStyle(2, hoverColor, 1);
                 cardBg.strokeRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
             });
+
             itemImage.on('pointerout', () => {
+                // Restore the normal border color based on coins
                 cardBg.clear();
                 cardBg.fillStyle(0x292929, 0.95);
                 cardBg.fillRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
-                cardBg.lineStyle(2, 0xFFD700, 1);
+                // Use the current border color (green or red)
+                cardBg.lineStyle(2, cardBg._currentBorderColor, 1);
                 cardBg.strokeRoundedRect(0, 0, buySlotSize, buySlotSize, 10);
             });
 
@@ -321,8 +387,15 @@ export default class ShopManager {
                 if (this.playerManager.stats.coins >= item.price) {
                     this.playerManager.stats.coins -= item.price;
 
+                    // Save coins to localStorage for persistence
+                    const persistentStats = JSON.parse(localStorage.getItem('playerPersistentStats')) || {};
+                    persistentStats.coins = this.playerManager.stats.coins;
+                    localStorage.setItem('playerPersistentStats', JSON.stringify(persistentStats));
+
                     // Add to inventoryData and update UI
+                    this.cardBorderUpdaters.forEach(fn => fn());
                     this.playerManager.addInventoryItem(item.key);
+
 
                     // Also add to inventory array if not already present (for legacy support)
                     // (If you want to stack, you can check for existing item and increment count)
